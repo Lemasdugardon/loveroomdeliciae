@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Réservez votre séjour au Loft Deliciae. Calendrier de disponibilités, options romantiques, paiement sécurisé et discret.">
+  <title>Réservation — Loft Deliciae</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>◆</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-logo">
+        Loft Deliciae
+        <span>Love Room · Paris</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="loft.html">Le Loft</a>
+        <a href="reservation.html" class="active">Réservation</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <a href="reservation.html" class="nav-cta">Réserver</a>
+      <button class="nav-burger" id="navBurger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Accueil</a>
+    <a href="loft.html">Le Loft</a>
+    <a href="reservation.html">Réservation</a>
+    <a href="contact.html">Contact</a>
+    <a href="reservation.html" class="btn btn-primary" style="margin-top:1rem;font-size:0.65rem;letter-spacing:0.2em;"><span>Réserver</span></a>
+  </div>
+
+  <!-- Page Hero -->
+  <section class="page-hero" style="height:45vh;min-height:380px;">
+    <div class="page-hero-bg">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 50%, rgba(80,60,45,0.1) 0%,transparent 60%);"></div>
+    </div>
+    <div class="container">
+      <div class="page-hero-content">
+        <span class="section-label">Votre séjour</span>
+        <h1>Réservation</h1>
+        <p style="font-family:var(--font-serif);font-style:italic;color:var(--argent);font-size:1.05rem;margin-top:1rem;font-weight:300;">
+          Composez votre expérience, étape par étape
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Réservation -->
+  <section class="reservation-layout">
+    <div class="container">
+
+      <!-- Étapes -->
+      <div class="resa-steps" role="list" aria-label="Étapes de réservation">
+        <div class="resa-step active" id="step-1-label" role="listitem">
+          <div class="resa-step-num">1</div>
+          <span>Dates</span>
+        </div>
+        <div class="resa-step" id="step-2-label" role="listitem">
+          <div class="resa-step-num">2</div>
+          <span>Durée & options</span>
+        </div>
+        <div class="resa-step" id="step-3-label" role="listitem">
+          <div class="resa-step-num">3</div>
+          <span>Informations</span>
+        </div>
+        <div class="resa-step" id="step-4-label" role="listitem">
+          <div class="resa-step-num">4</div>
+          <span>Paiement</span>
+        </div>
+      </div>
+
+      <div class="resa-grid">
+        <!-- Colonne principale -->
+        <div>
+          <!-- Étape 1 : Calendrier -->
+          <div id="resa-step-1">
+            <div class="calendar-wrapper" aria-label="Sélection des dates">
+              <div class="calendar-header">
+                <h3 class="cal-month" id="calMonthLabel"></h3>
+                <div class="cal-nav">
+                  <button id="calPrev" aria-label="Mois précédent">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M7.5 2L4 6l3.5 4"/>
+                    </svg>
+                  </button>
+                  <button id="calNext" aria-label="Mois suivant">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <path d="M4.5 2L8 6l-3.5 4"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="calendar-grid" id="calendarGrid" role="grid" aria-label="Calendrier de disponibilités">
+                <!-- Jours de semaine -->
+                <div class="cal-day-name" role="columnheader">Lun</div>
+                <div class="cal-day-name" role="columnheader">Mar</div>
+                <div class="cal-day-name" role="columnheader">Mer</div>
+                <div class="cal-day-name" role="columnheader">Jeu</div>
+                <div class="cal-day-name" role="columnheader">Ven</div>
+                <div class="cal-day-name" role="columnheader">Sam</div>
+                <div class="cal-day-name" role="columnheader">Dim</div>
+              </div>
+            </div>
+            <p id="dateSelectionInfo" style="font-size:0.78rem;color:var(--argent);margin-top:-1rem;margin-bottom:2rem;min-height:1.4em;font-style:italic;"></p>
+          </div>
+
+          <!-- Étape 2 : Durée -->
+          <div class="duree-section">
+            <div class="duree-title">Durée du séjour</div>
+            <div class="duree-options" role="radiogroup" aria-label="Durée du séjour">
+              <div class="duree-option selected" data-duree="nuit" data-nuits="1" role="radio" aria-checked="true" tabindex="0">
+                <span class="duree-option-label">Nuitée</span>
+                <span class="duree-option-price">à partir de 180 €</span>
+              </div>
+              <div class="duree-option" data-duree="weekend" data-nuits="2" role="radio" aria-checked="false" tabindex="0">
+                <span class="duree-option-label">Week-end</span>
+                <span class="duree-option-price">à partir de 320 €</span>
+              </div>
+              <div class="duree-option" data-duree="long" data-nuits="3" role="radio" aria-checked="false" tabindex="0">
+                <span class="duree-option-label">3 nuits</span>
+                <span class="duree-option-price">à partir de 450 €</span>
+              </div>
+              <div class="duree-option" data-duree="semaine" data-nuits="7" role="radio" aria-checked="false" tabindex="0">
+                <span class="duree-option-label">Semaine</span>
+                <span class="duree-option-price">à partir de 980 €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Étape 3 : Options & extras -->
+          <div class="extras-section">
+            <div class="extras-title">Options & extras</div>
+            <div class="extras-list" role="group" aria-label="Options supplémentaires">
+              <div class="extra-item" data-extra="petales" data-price="25" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Pétales de roses</span>
+                </div>
+                <span class="extra-price">+25 €</span>
+              </div>
+              <div class="extra-item" data-extra="champagne" data-price="55" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Champagne millésimé & coupe en cristal</span>
+                </div>
+                <span class="extra-price">+55 €</span>
+              </div>
+              <div class="extra-item" data-extra="petitdej" data-price="35" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Plateau petit-déjeuner pour 2</span>
+                </div>
+                <span class="extra-price">+35 €</span>
+              </div>
+              <div class="extra-item" data-extra="bougies" data-price="20" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Sélection de bougies parfumées</span>
+                </div>
+                <span class="extra-price">+20 €</span>
+              </div>
+              <div class="extra-item" data-extra="jacuzzi" data-price="30" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Jacuzzi préparé à l'arrivée</span>
+                </div>
+                <span class="extra-price">+30 €</span>
+              </div>
+              <div class="extra-item" data-extra="deco" data-price="45" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Décoration romantique thématique</span>
+                </div>
+                <span class="extra-price">+45 €</span>
+              </div>
+              <div class="extra-item" data-extra="surprise" data-price="80" role="checkbox" aria-checked="false" tabindex="0">
+                <div class="extra-left">
+                  <div class="extra-check" aria-hidden="true">
+                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+                  </div>
+                  <span class="extra-name">Pack surprise complet (pétales + champagne + bougies + deco)</span>
+                </div>
+                <span class="extra-price">+80 €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulaire coordonnées -->
+          <div style="margin-bottom:3rem;">
+            <div class="extras-title" style="margin-bottom:1.5rem;">Vos coordonnées</div>
+            <form id="reservationForm" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="prenom">Prénom</label>
+                  <input type="text" id="prenom" name="prenom" class="form-input" placeholder="Votre prénom" autocomplete="given-name" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="nom">Nom</label>
+                  <input type="text" id="nom" name="nom" class="form-input" placeholder="Votre nom" autocomplete="family-name" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="email">Email</label>
+                  <input type="email" id="email" name="email" class="form-input" placeholder="votre@email.fr" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="telephone">Téléphone</label>
+                  <input type="tel" id="telephone" name="telephone" class="form-input" placeholder="+33 6 XX XX XX XX" autocomplete="tel">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="occasion">Occasion (optionnel)</label>
+                <select id="occasion" name="occasion" class="form-select">
+                  <option value="">Choisir une occasion...</option>
+                  <option value="anniversaire">Anniversaire de couple</option>
+                  <option value="saint-valentin">Saint-Valentin</option>
+                  <option value="surprise">Surprise romantique</option>
+                  <option value="lune-de-miel">Lune de miel</option>
+                  <option value="escapade">Escapade improvisée</option>
+                  <option value="autre">Autre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="message">Message ou souhaits particuliers</label>
+                <textarea id="message" name="message" class="form-textarea" placeholder="Partagez-nous vos envies ou besoins spécifiques..." rows="4"></textarea>
+              </div>
+              <div class="form-group" style="margin-top:1.5rem;">
+                <label class="form-checkbox">
+                  <input type="checkbox" id="rgpdCheck" required>
+                  <div class="form-checkbox-box"></div>
+                  <span class="form-checkbox-label">
+                    J'accepte la <a href="contact.html#confidentialite">politique de confidentialité</a> et le traitement de mes données personnelles conformément au RGPD. Vos données ne seront jamais partagées avec des tiers.
+                  </span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="form-checkbox">
+                  <input type="checkbox" id="cgvCheck" required>
+                  <div class="form-checkbox-box"></div>
+                  <span class="form-checkbox-label">
+                    J'accepte les <a href="contact.html#cgv">conditions générales de vente</a> et la politique d'annulation.
+                  </span>
+                </label>
+              </div>
+            </form>
+          </div>
+
+          <!-- Notice discrétion -->
+          <div style="padding:1.5rem;border:1px solid rgba(154,150,145,0.12);background:rgba(154,150,145,0.03);margin-bottom:2rem;">
+            <div style="font-size:0.62rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--argent);margin-bottom:0.5rem;">Discrétion absolue</div>
+            <p style="font-size:0.78rem;color:var(--argent);line-height:1.8;">
+              Votre réservation apparaîtra sur votre relevé bancaire sous une mention neutre et discrète, sans aucune référence à la nature du lieu. Vos données personnelles sont chiffrées et ne sont jamais partagées.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Récapitulatif -->
+        <aside>
+          <div class="recap-panel" role="complementary" aria-label="Récapitulatif de votre réservation">
+            <div class="recap-title">Récapitulatif</div>
+
+            <div class="recap-ligne">
+              <span class="recap-label">Arrivée</span>
+              <span class="recap-value" id="recap-arrivee">—</span>
+            </div>
+            <div class="recap-ligne">
+              <span class="recap-label">Départ</span>
+              <span class="recap-value" id="recap-depart">—</span>
+            </div>
+            <div class="recap-ligne">
+              <span class="recap-label">Durée</span>
+              <span class="recap-value" id="recap-duree">1 nuit</span>
+            </div>
+            <div class="recap-ligne">
+              <span class="recap-label">Hébergement</span>
+              <span class="recap-value" id="recap-prix-base">180 €</span>
+            </div>
+
+            <div id="recap-extras-container" style="margin-top:0.5rem;"></div>
+
+            <div class="recap-total">
+              <span class="recap-total-label">Total</span>
+              <span class="recap-total-amount" id="recap-total">180 €</span>
+            </div>
+
+            <p class="recap-disclaimer">
+              Paiement sécurisé par carte bancaire (Stripe). Aucune mention explicite sur vos relevés bancaires. Confirmation par e-mail immédiate.
+            </p>
+
+            <button class="recap-btn" id="recapBtn" type="button">
+              Procéder au paiement
+            </button>
+
+            <div style="display:flex;align-items:center;justify-content:center;gap:0.8rem;margin-top:1.5rem;opacity:0.5;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--argent)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="1"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span style="font-size:0.62rem;color:var(--argent);letter-spacing:0.1em;">Paiement 100% sécurisé</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">Loft Deliciae</div>
+          <div class="footer-tagline">Un espace pensé pour les amoureux</div>
+          <p class="footer-desc">Love room haut de gamme nichée au cœur de Paris. Intimité, élégance et discrétion absolue pour des moments inoubliables à deux.</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Navigation</div>
+          <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="loft.html">Le Loft</a></li>
+            <li><a href="reservation.html">Réservation</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Informations</div>
+          <ul>
+            <li><a href="contact.html#faq">FAQ</a></li>
+            <li><a href="contact.html#confidentialite">Politique de confidentialité</a></li>
+            <li><a href="contact.html#cgv">Conditions générales</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-legal">© 2024 Loft Deliciae. Tous droits réservés.</p>
+        <div class="footer-links-legal">
+          <a href="contact.html#confidentialite">Confidentialité</a>
+          <a href="contact.html#cgv">CGV</a>
+          <a href="contact.html#mentions">Mentions légales</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <script src="js/main.js"></script>
+  <script src="js/reservation.js"></script>
+</body>
+</html>
