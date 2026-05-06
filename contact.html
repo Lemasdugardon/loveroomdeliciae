@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Contactez le Loft Deliciae. Questions, informations, renseignements sur votre séjour romantique à Paris.">
+  <title>Contact — Loft Deliciae</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>◆</text></svg>">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-logo">
+        Loft Deliciae
+        <span>Love Room · Paris</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="loft.html">Le Loft</a>
+        <a href="reservation.html">Réservation</a>
+        <a href="contact.html" class="active">Contact</a>
+      </div>
+      <a href="reservation.html" class="nav-cta">Réserver</a>
+      <button class="nav-burger" id="navBurger" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Accueil</a>
+    <a href="loft.html">Le Loft</a>
+    <a href="reservation.html">Réservation</a>
+    <a href="contact.html">Contact</a>
+    <a href="reservation.html" class="btn btn-primary" style="margin-top:1rem;font-size:0.65rem;letter-spacing:0.2em;"><span>Réserver</span></a>
+  </div>
+
+  <!-- Hero -->
+  <section class="page-hero" style="height:45vh;min-height:360px;">
+    <div class="page-hero-bg"></div>
+    <div class="container">
+      <div class="page-hero-content">
+        <span class="section-label">Nous écrire</span>
+        <h1>Contact</h1>
+        <p style="font-family:var(--font-serif);font-style:italic;color:var(--argent);font-size:1.05rem;margin-top:1rem;font-weight:300;">
+          Une question ? Nous répondons sous 24h
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact layout -->
+  <section class="contact-layout">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Infos -->
+        <div>
+          <span class="section-label">Nous joindre</span>
+          <h2 class="section-title" style="font-size:1.8rem;">
+            Une question sur<br>
+            <em>votre séjour ?</em>
+          </h2>
+          <div class="divider"></div>
+          <p style="font-size:0.82rem;color:var(--argent);line-height:1.9;margin-bottom:2.5rem;">
+            Notre équipe est disponible pour répondre à toutes vos questions concernant le loft, la réservation ou les options disponibles. Votre discrétion est notre priorité.
+          </p>
+
+          <div class="contact-info-item">
+            <div class="contact-info-label">Email</div>
+            <div class="contact-info-val">
+              <a href="mailto:contact@loftdeliciae.fr" style="color:var(--argent-clair);transition:color 0.3s ease;" onmouseover="this.style.color='var(--perle)'" onmouseout="this.style.color='var(--argent-clair)'">contact@loftdeliciae.fr</a>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-label">Téléphone & WhatsApp</div>
+            <div class="contact-info-val">
+              <a href="tel:+33600000000" style="color:var(--argent-clair);">+33 6 00 00 00 00</a>
+              <br><span style="font-size:0.72rem;color:var(--argent);opacity:0.7;">Disponible 7j/7 de 9h à 21h</span>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-label">Localisation</div>
+            <div class="contact-info-val" style="color:var(--argent-clair);">
+              Paris, France<br>
+              <span style="font-size:0.72rem;color:var(--argent);opacity:0.7;">Adresse précise communiquée après réservation</span>
+            </div>
+          </div>
+
+          <div class="contact-info-item">
+            <div class="contact-info-label">Check-in / Check-out</div>
+            <div class="contact-info-val" style="color:var(--argent-clair);">
+              Arrivée : à partir de 15h<br>
+              Départ : jusqu'à 12h
+              <br><span style="font-size:0.72rem;color:var(--argent);opacity:0.7;">Horaires flexibles sur demande</span>
+            </div>
+          </div>
+
+          <!-- Garantie discrétion -->
+          <div style="padding:1.5rem;border:1px solid rgba(154,150,145,0.12);background:rgba(154,150,145,0.03);margin-top:1rem;">
+            <div style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--argent);margin-bottom:0.5rem;">Confidentialité garantie</div>
+            <p style="font-size:0.75rem;color:var(--argent);line-height:1.8;">
+              Toutes vos communications avec nous sont strictement confidentielles. Nous ne partageons jamais vos informations avec des tiers.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formulaire -->
+        <div>
+          <form id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="c-prenom">Prénom</label>
+                <input type="text" id="c-prenom" name="prenom" class="form-input" placeholder="Votre prénom" autocomplete="given-name" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="c-nom">Nom</label>
+                <input type="text" id="c-nom" name="nom" class="form-input" placeholder="Votre nom" autocomplete="family-name" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-email">Email</label>
+              <input type="email" id="c-email" name="email" class="form-input" placeholder="votre@email.fr" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-sujet">Sujet</label>
+              <select id="c-sujet" name="sujet" class="form-select">
+                <option value="">Sélectionner un sujet...</option>
+                <option value="reservation">Question sur une réservation</option>
+                <option value="disponibilites">Disponibilités</option>
+                <option value="tarifs">Tarifs & offres</option>
+                <option value="options">Options & personnalisation</option>
+                <option value="annulation">Annulation / Modification</option>
+                <option value="autre">Autre demande</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-message">Message</label>
+              <textarea id="c-message" name="message" class="form-textarea" placeholder="Décrivez votre demande..." rows="6" required></textarea>
+            </div>
+            <div class="form-group" style="margin-top:1.5rem;">
+              <label class="form-checkbox">
+                <input type="checkbox" id="c-rgpd" required>
+                <div class="form-checkbox-box"></div>
+                <span class="form-checkbox-label">
+                  J'accepte la <a href="#confidentialite">politique de confidentialité</a> et consens au traitement de mes données conformément au RGPD.
+                </span>
+              </label>
+            </div>
+            <div style="margin-top:2rem;">
+              <button type="submit" class="btn btn-primary" style="width:100%;padding:1.2rem;font-size:0.7rem;letter-spacing:0.25em;">
+                <span>Envoyer le message</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section" id="faq" aria-labelledby="faq-title">
+    <div class="container">
+      <div class="fade-up">
+        <span class="section-label">Questions fréquentes</span>
+        <h2 class="section-title" id="faq-title">
+          Tout ce que vous<br>
+          <em>souhaitez savoir</em>
+        </h2>
+      </div>
+      <div class="faq-list" role="list">
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Comment se passe la réservation ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>La réservation s'effectue entièrement en ligne sur notre site en quelques minutes. Choisissez vos dates, sélectionnez vos options, renseignez vos coordonnées et procédez au paiement sécurisé. Vous recevrez une confirmation par e-mail instantanément avec toutes les informations nécessaires à votre arrivée.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Le lieu apparaîtra-t-il sur mon relevé bancaire ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Absolument pas. Votre paiement apparaîtra sous une mention neutre et discrète sur votre relevé de compte, sans aucune référence à la nature du lieu. Votre intimité et votre discrétion sont notre priorité absolue.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Comment se passe le check-in ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>L'accès au loft est entièrement automatisé et discret. Après votre réservation confirmée, vous recevrez un code d'accès unique valable uniquement pour votre séjour. Aucun contact en face à face n'est nécessaire, vous pouvez arriver à l'heure que vous souhaitez dans la plage horaire convenue.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Quelle est la politique d'annulation ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Annulation gratuite jusqu'à 72h avant l'arrivée avec remboursement intégral. Entre 72h et 24h : remboursement à 50%. Moins de 24h avant l'arrivée : aucun remboursement. En cas de force majeure, nous étudions chaque situation individuellement.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Les options peuvent-elles être ajoutées après la réservation ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Oui, il est possible d'ajouter ou de modifier certaines options jusqu'à 48h avant votre arrivée en nous contactant directement par e-mail ou WhatsApp. Passé ce délai, nous ferons notre maximum pour satisfaire vos demandes selon les disponibilités.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Y a-t-il des caméras dans le loft ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Non, absolument pas. Il n'y a aucune caméra ni aucun dispositif d'enregistrement à l'intérieur du loft. Votre intimité est totalement préservée. Seul l'accès extérieur (hall d'entrée de l'immeuble) peut être équipé de dispositifs de sécurité, conformément à la législation en vigueur.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Quels modes de paiement acceptez-vous ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Nous acceptons toutes les cartes bancaires (Visa, Mastercard, American Express) via notre plateforme de paiement sécurisée Stripe. Un virement bancaire sécurisé est également possible sur demande. Tous les paiements sont chiffrés SSL et conformes aux normes PCI-DSS.</p>
+          </div>
+        </div>
+        <div class="faq-item" role="listitem">
+          <div class="faq-question" tabindex="0" aria-expanded="false">
+            Est-il possible d'organiser une surprise pour mon partenaire ?
+            <span class="faq-icon" aria-hidden="true"></span>
+          </div>
+          <div class="faq-answer">
+            <p>Bien sûr ! C'est même l'une des demandes les plus fréquentes. Contactez-nous avant votre réservation pour que nous puissions adapter l'accueil et la préparation du loft. Nous pouvons coordonner l'arrivée pour que tout soit parfait au moment où votre partenaire découvrira l'espace.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Politique de confidentialité -->
+  <section id="confidentialite" style="padding:6rem 0;border-top:1px solid rgba(154,150,145,0.08);">
+    <div class="container" style="max-width:800px;">
+      <span class="section-label">RGPD</span>
+      <h2 class="section-title" style="font-size:1.8rem;">Politique de confidentialité</h2>
+      <div class="divider"></div>
+      <div style="font-size:0.82rem;color:var(--argent);line-height:2;max-width:65ch;">
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Responsable du traitement :</strong> Loft Deliciae, Paris, France.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Données collectées :</strong> Nom, prénom, e-mail, numéro de téléphone (optionnel), données de réservation. Ces informations sont strictement nécessaires au traitement de votre réservation.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Finalité :</strong> Gestion des réservations, envoi de la confirmation de séjour, communication relative à votre réservation. Aucun usage commercial ou marketing sans consentement explicite.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Conservation :</strong> Vos données sont conservées 3 ans après votre dernier séjour, conformément aux obligations légales françaises.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Partage :</strong> Vos données ne sont jamais vendues ni partagées avec des tiers, à l'exception de nos prestataires de paiement (Stripe) soumis aux mêmes obligations de confidentialité.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Vos droits :</strong> Accès, rectification, suppression, portabilité et opposition. Pour exercer ces droits : <a href="mailto:privacy@loftdeliciae.fr" style="color:var(--argent-clair);">privacy@loftdeliciae.fr</a></p>
+        <p><strong style="color:var(--argent-clair);font-weight:400;">Cookies :</strong> Ce site utilise uniquement des cookies techniques strictement nécessaires au fonctionnement. Aucun cookie de tracking ou publicitaire n'est utilisé.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CGV -->
+  <section id="cgv" style="padding:6rem 0;background:var(--anthracite);border-top:1px solid rgba(154,150,145,0.08);">
+    <div class="container" style="max-width:800px;">
+      <span class="section-label">Légal</span>
+      <h2 class="section-title" style="font-size:1.8rem;">Conditions Générales de Vente</h2>
+      <div class="divider"></div>
+      <div style="font-size:0.82rem;color:var(--argent);line-height:2;max-width:65ch;">
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Article 1 — Objet</strong><br>Les présentes CGV régissent les ventes de séjours effectuées sur le site Loft Deliciae. Toute réservation implique l'acceptation sans réserve des présentes conditions.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Article 2 — Réservation</strong><br>La réservation est confirmée à réception du paiement intégral. Un e-mail de confirmation est envoyé dans les minutes suivant le paiement. Le loft est réservé exclusivement pour les dates convenues.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Article 3 — Tarifs</strong><br>Les prix affichés sont TTC en euros. Ils comprennent la mise à disposition du loft, le linge de maison et les équipements de base. Les options sélectionnées sont facturées en supplément.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Article 4 — Annulation</strong><br>Annulation gratuite jusqu'à 72h avant l'arrivée (remboursement intégral). Entre 72h et 24h : 50% remboursé. Moins de 24h : aucun remboursement. En cas de force majeure dûment justifiée, un avoir valable 12 mois sera proposé.</p>
+        <p style="margin-bottom:1.5rem;"><strong style="color:var(--argent-clair);font-weight:400;">Article 5 — Règlement intérieur</strong><br>Le loft est loué exclusivement à des adultes majeurs. Interdiction de fumer à l'intérieur. Les animaux ne sont pas admis. Toute dégradation sera facturée au locataire. Le bruit excessif après 22h est interdit.</p>
+        <p><strong style="color:var(--argent-clair);font-weight:400;">Article 6 — Responsabilité</strong><br>Loft Deliciae ne saurait être tenu responsable de dommages indirects liés au séjour. La responsabilité de Loft Deliciae est limitée au montant de la réservation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mentions légales -->
+  <section id="mentions" style="padding:5rem 0;border-top:1px solid rgba(154,150,145,0.08);">
+    <div class="container" style="max-width:800px;">
+      <span class="section-label">Informations</span>
+      <h2 class="section-title" style="font-size:1.8rem;">Mentions légales</h2>
+      <div class="divider"></div>
+      <div style="font-size:0.82rem;color:var(--argent);line-height:2;max-width:65ch;">
+        <p style="margin-bottom:1rem;"><strong style="color:var(--argent-clair);font-weight:400;">Éditeur du site :</strong> Loft Deliciae — Paris, France</p>
+        <p style="margin-bottom:1rem;"><strong style="color:var(--argent-clair);font-weight:400;">Contact :</strong> <a href="mailto:contact@loftdeliciae.fr" style="color:var(--argent-clair);">contact@loftdeliciae.fr</a></p>
+        <p style="margin-bottom:1rem;"><strong style="color:var(--argent-clair);font-weight:400;">Hébergement :</strong> Vercel Inc. — San Francisco, CA, USA</p>
+        <p style="margin-bottom:1rem;"><strong style="color:var(--argent-clair);font-weight:400;">Droit applicable :</strong> Droit français. Tout litige relève de la compétence exclusive des tribunaux français.</p>
+        <p><strong style="color:var(--argent-clair);font-weight:400;">Propriété intellectuelle :</strong> L'ensemble du contenu de ce site (textes, images, design) est protégé par le droit d'auteur. Toute reproduction sans autorisation est interdite.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">Loft Deliciae</div>
+          <div class="footer-tagline">Un espace pensé pour les amoureux</div>
+          <p class="footer-desc">Love room haut de gamme nichée au cœur de Paris. Intimité, élégance et discrétion absolue pour des moments inoubliables à deux.</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Navigation</div>
+          <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="loft.html">Le Loft</a></li>
+            <li><a href="reservation.html">Réservation</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Informations</div>
+          <ul>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#confidentialite">Politique de confidentialité</a></li>
+            <li><a href="#cgv">Conditions générales</a></li>
+            <li><a href="#mentions">Mentions légales</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-legal">© 2024 Loft Deliciae. Tous droits réservés.</p>
+        <div class="footer-links-legal">
+          <a href="#confidentialite">Confidentialité</a>
+          <a href="#cgv">CGV</a>
+          <a href="#mentions">Mentions légales</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Formulaire contact
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const toast = document.getElementById('toast');
+      const prenom = document.getElementById('c-prenom').value.trim();
+      const email = document.getElementById('c-email').value.trim();
+      const message = document.getElementById('c-message').value.trim();
+      const rgpd = document.getElementById('c-rgpd').checked;
+
+      if (!prenom || !email || !message) {
+        toast.textContent = 'Veuillez remplir tous les champs obligatoires.';
+        toast.className = 'toast error show';
+        setTimeout(() => toast.classList.remove('show'), 4000);
+        return;
+      }
+      if (!rgpd) {
+        toast.textContent = 'Veuillez accepter la politique de confidentialité.';
+        toast.className = 'toast error show';
+        setTimeout(() => toast.classList.remove('show'), 4000);
+        return;
+      }
+
+      toast.textContent = 'Votre message a bien été envoyé. Nous vous répondrons sous 24h.';
+      toast.className = 'toast success show';
+      setTimeout(() => toast.classList.remove('show'), 5000);
+      this.reset();
+    });
+  </script>
+</body>
+</html>
