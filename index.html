@@ -50,7 +50,7 @@
       <div class="candle-glow" style="top: 60%; left: 45%; animation-delay: 1.2s; width:200px; height:200px;"></div>
     </div>
     <div class="hero-image-zone" aria-hidden="true">
-      <div class="hero-image-placeholder placeholder-chambre"></div>
+      <div class="hero-image-placeholder placeholder-chambre" id="hero-image"></div>
     </div>
     <div class="container">
       <div class="hero-content">
@@ -59,12 +59,12 @@
           Une parenthèse
           <em>hors du temps</em>
         </h1>
-        <p class="hero-subtitle">
+        <p class="hero-subtitle" data-texte="texte_hero_sous_titre">
           Un espace pensé pour les amoureux —<br>
           discret, élégant, inoubliable.
         </p>
         <div class="hero-actions">
-          <a href="reservation.html" class="btn btn-primary"><span>Réserver votre séjour</span></a>
+          <a href="reservation.html" class="btn btn-primary"><span data-texte="texte_hero_bouton">Réserver votre séjour</span></a>
           <a href="loft.html" class="btn btn-outline">Découvrir le loft</a>
         </div>
       </div>
@@ -98,7 +98,7 @@
             <em>et de lumière tamisée</em>
           </h2>
           <div class="divider"></div>
-          <p class="section-intro">
+          <p class="section-intro" data-texte="texte_about_desc">
             Le Loft Deliciae est une love room d'exception conçue pour sublimer chaque instant partagé. Entre clair-obscur raffiné, matières nobles et détails soignés, chaque élément a été pensé pour éveiller les sens et créer une atmosphère de complicité unique.
           </p>
           <div class="atmosphere-features" style="margin-top:2.5rem;">
@@ -142,7 +142,7 @@
         <span class="section-label">Galerie</span>
         <h2 class="section-title" id="galerie-title">Le loft en images</h2>
       </div>
-      <div class="galerie-grid" role="list">
+      <div class="galerie-grid" id="galerie-grid" role="list">
         <div class="galerie-item gi-1 fade-up" role="listitem">
           <div class="img-placeholder-inner placeholder-chambre" role="img" aria-label="Lit king-size avec drapés en satin"></div>
         </div>

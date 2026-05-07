@@ -112,3 +112,59 @@
   });
 
 })();
+
+/* ── Contenu dynamique (textes & photos depuis l'admin) ────── */
+(async function loadSiteContent() {
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  try {
+    const [tRes, pRes] = await Promise.all([fetch('/api/textes'), fetch('/api/photos')]);
+    if (!tRes.ok || !pRes.ok) return;
+    const texts  = await tRes.json();
+    const photos = await pRes.json();
+
+    // Textes : remplace les éléments portant data-texte="clé"
+    document.querySelectorAll('[data-texte]').forEach(el => {
+      const v = texts[el.dataset.texte];
+      if (v) el.textContent = v;
+    });
+
+    // Image hero principale
+    const heroEl = document.getElementById('hero-image');
+    const heroPhotos = photos.filter(p => p.categorie === 'hero');
+    if (heroEl && heroPhotos.length) {
+      const img = document.createElement('img');
+      img.src = heroPhotos[0].url;
+      img.alt = heroPhotos[0].alt || 'Loft Deliciae';
+      img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+      heroEl.appendChild(img);
+    }
+
+    // Galerie
+    const galerieGrid = document.getElementById('galerie-grid');
+    const galeriePhotos = photos.filter(p => p.categorie === 'galerie');
+    if (galerieGrid && galeriePhotos.length) {
+      const classes = ['gi-1','gi-2','gi-3','gi-4','gi-5','gi-6'];
+      galerieGrid.innerHTML = galeriePhotos.map((p, i) => `
+        <div class="galerie-item ${classes[i] || ''} fade-up visible" role="listitem">
+          <img src="${esc(p.url)}" alt="${esc(p.alt || '')}"
+            style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit">
+        </div>
+      `).join('');
+    }
+
+    // Chambre principale (page loft.html)
+    const mainPhoto = document.getElementById('main-photo');
+    const chambrePhotos = photos.filter(p => p.categorie === 'chambre');
+    if (mainPhoto && chambrePhotos.length) {
+      const img = document.createElement('img');
+      img.src = chambrePhotos[0].url;
+      img.alt = chambrePhotos[0].alt || '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;min-height:inherit;border-radius:inherit;';
+      mainPhoto.replaceWith(img);
+    }
+
+  } catch (_) {}
+})();

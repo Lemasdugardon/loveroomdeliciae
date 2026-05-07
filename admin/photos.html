@@ -38,10 +38,35 @@
 
     <div class="form-section">
       <div class="form-section-title">Ajouter une photo</div>
-      <div class="form-group">
+
+      <!-- Onglets source -->
+      <div style="display:flex;gap:0;margin-bottom:1.2rem;border:1px solid var(--border);width:fit-content">
+        <button id="tab-fichier" onclick="setTab('fichier')"
+          style="padding:0.5rem 1.2rem;background:var(--perle);color:#1a1a1a;border:none;font-size:0.75rem;letter-spacing:0.1em;cursor:pointer">
+          Depuis l'ordinateur
+        </button>
+        <button id="tab-url" onclick="setTab('url')"
+          style="padding:0.5rem 1.2rem;background:transparent;color:var(--argent);border:none;font-size:0.75rem;letter-spacing:0.1em;cursor:pointer">
+          Par URL
+        </button>
+      </div>
+
+      <!-- Upload fichier -->
+      <div id="zone-fichier" class="form-group">
+        <label>Fichier image <small style="color:var(--argent)">(JPG, PNG, WebP — max 3 Mo)</small></label>
+        <input type="file" id="newFile" accept="image/*" onchange="onFileChange()"
+          style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--perle);padding:0.7rem 1rem;font-family:var(--font-sans);font-size:0.85rem;outline:none;cursor:pointer">
+        <div id="filePreview" style="margin-top:0.6rem;display:none">
+          <img id="filePreviewImg" style="max-height:120px;max-width:100%;object-fit:contain;border:1px solid var(--border)">
+        </div>
+      </div>
+
+      <!-- URL -->
+      <div id="zone-url" class="form-group" style="display:none">
         <label>URL de la photo</label>
         <input type="url" id="newUrl" placeholder="https://... (lien direct vers l'image)">
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Description (alt)</label>
@@ -61,7 +86,7 @@
         <label>Ordre d'affichage</label>
         <input type="number" id="newOrdre" value="0" min="0" style="width:100px">
       </div>
-      <button class="btn-save" onclick="addPhoto()">Ajouter la photo</button>
+      <button class="btn-save" id="addBtn" onclick="addPhoto()">Ajouter la photo</button>
     </div>
 
     <div class="form-section">
@@ -75,6 +100,48 @@
   <script src="js/admin.js"></script>
   <script>
     let photos = [];
+    let currentTab = 'fichier';
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.getElementById('zone-fichier').style.display = tab === 'fichier' ? '' : 'none';
+      document.getElementById('zone-url').style.display     = tab === 'url'     ? '' : 'none';
+      document.getElementById('tab-fichier').style.background = tab === 'fichier' ? 'var(--perle)' : 'transparent';
+      document.getElementById('tab-fichier').style.color      = tab === 'fichier' ? '#1a1a1a' : 'var(--argent)';
+      document.getElementById('tab-url').style.background     = tab === 'url'     ? 'var(--perle)' : 'transparent';
+      document.getElementById('tab-url').style.color          = tab === 'url'     ? '#1a1a1a' : 'var(--argent)';
+    }
+
+    function onFileChange() {
+      const file = document.getElementById('newFile').files[0];
+      if (!file) return;
+      const preview = document.getElementById('filePreview');
+      const img = document.getElementById('filePreviewImg');
+      preview.style.display = '';
+      img.src = URL.createObjectURL(file);
+    }
+
+    async function uploadFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result.split(',')[1];
+          const res = await fetch('/api/admin/upload', {
+            method: 'POST', headers: authHeaders(),
+            body: JSON.stringify({ filename: file.name, contentType: file.type, data: base64 })
+          });
+          if (res.ok) {
+            const { url } = await res.json();
+            resolve(url);
+          } else {
+            const err = await res.json().catch(() => ({}));
+            reject(new Error(err.error || 'Erreur upload'));
+          }
+        };
+        reader.onerror = () => reject(new Error('Lecture fichier échouée'));
+        reader.readAsDataURL(file);
+      });
+    }
 
     async function loadPhotos() {
       const res = await fetch('/api/admin/photos', { headers: authHeaders() });
@@ -112,17 +179,41 @@
     }
 
     async function addPhoto() {
-      const url       = document.getElementById('newUrl').value.trim();
       const alt       = document.getElementById('newAlt').value.trim();
       const categorie = document.getElementById('newCategorie').value;
       const ordre     = parseInt(document.getElementById('newOrdre').value) || 0;
-      if (!url) { toast('Entrez une URL', 'error'); return; }
+      let url = '';
+
+      if (currentTab === 'fichier') {
+        const file = document.getElementById('newFile').files[0];
+        if (!file) { toast('Sélectionnez un fichier', 'error'); return; }
+        if (file.size > 3 * 1024 * 1024) { toast('Fichier trop lourd (max 3 Mo)', 'error'); return; }
+        const btn = document.getElementById('addBtn');
+        btn.textContent = 'Envoi en cours...';
+        btn.disabled = true;
+        try {
+          url = await uploadFile(file);
+        } catch(e) {
+          toast(e.message, 'error');
+          btn.textContent = 'Ajouter la photo';
+          btn.disabled = false;
+          return;
+        }
+        btn.textContent = 'Ajouter la photo';
+        btn.disabled = false;
+      } else {
+        url = document.getElementById('newUrl').value.trim();
+        if (!url) { toast('Entrez une URL', 'error'); return; }
+      }
+
       const res = await fetch('/api/admin/photos', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ url, alt, categorie, ordre })
       });
       if (res.ok) {
         toast('Photo ajoutée ✓');
+        document.getElementById('newFile').value = '';
+        document.getElementById('filePreview').style.display = 'none';
         document.getElementById('newUrl').value = '';
         document.getElementById('newAlt').value = '';
         document.getElementById('newOrdre').value = '0';
