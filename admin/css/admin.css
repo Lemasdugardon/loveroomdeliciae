@@ -1,0 +1,151 @@
+/* ============================================================
+   LOFT DELICIAE — Panel Admin
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Raleway:wght@300;400;500&display=swap');
+
+:root {
+  --noir:       #0a0a0a;
+  --dark:       #111;
+  --card:       #181818;
+  --border:     rgba(255,255,255,0.08);
+  --argent:     #9a9691;
+  --perle:      #e8e1d8;
+  --blanc:      #f4f0eb;
+  --success:    #4caf7d;
+  --warning:    #e8a84a;
+  --danger:     #c47a7a;
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans:  'Raleway', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { background: var(--noir); color: var(--blanc); font-family: var(--font-sans); font-weight: 300; min-height: 100vh; display: flex; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+
+/* ── Login ──────────────────────────────────────────────── */
+.login-page { align-items: center; justify-content: center; }
+.login-box { background: var(--card); border: 1px solid var(--border); padding: 3rem; width: 100%; max-width: 380px; }
+.login-logo { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--perle); margin-bottom: 0.3rem; text-align: center; }
+.login-sub  { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--argent); text-align: center; margin-bottom: 2.5rem; }
+.error-msg  { color: var(--danger); font-size: 0.78rem; margin-top: 0.8rem; text-align: center; }
+
+/* ── Layout ─────────────────────────────────────────────── */
+.sidebar {
+  width: 220px; min-height: 100vh; background: var(--dark);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0;
+}
+.sidebar-logo { padding: 2rem 1.5rem 1.5rem; border-bottom: 1px solid var(--border); }
+.sidebar-logo span { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 300; color: var(--perle); display: block; }
+.sidebar-logo small { font-size: 0.55rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--argent); }
+.sidebar-nav { flex: 1; padding: 1.5rem 0; }
+.nav-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.75rem 1.5rem; font-size: 0.78rem; letter-spacing: 0.08em; color: var(--argent); cursor: pointer; transition: all 0.2s; }
+.nav-item:hover, .nav-item.active { color: var(--perle); background: rgba(255,255,255,0.04); }
+.nav-item.active { border-left: 2px solid var(--perle); }
+.nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+.sidebar-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
+.logout-btn { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--argent); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+.logout-btn:hover { color: var(--danger); }
+
+.main { margin-left: 220px; flex: 1; padding: 2.5rem; min-height: 100vh; }
+.page-header { margin-bottom: 2.5rem; }
+.page-title { font-family: var(--font-serif); font-size: 1.8rem; font-weight: 300; color: var(--perle); margin-bottom: 0.3rem; }
+.page-sub { font-size: 0.72rem; color: var(--argent); letter-spacing: 0.05em; }
+
+/* ── Cards ──────────────────────────────────────────────── */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); padding: 1.5rem; }
+.stat-label { font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--argent); margin-bottom: 0.8rem; }
+.stat-value { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 300; color: var(--perle); }
+.stat-value.success { color: var(--success); }
+.stat-value.warning { color: var(--warning); }
+
+/* ── Table ──────────────────────────────────────────────── */
+.table-wrap { background: var(--card); border: 1px solid var(--border); overflow: hidden; }
+.table-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.table-title { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--argent); }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--argent); padding: 0.8rem 1.2rem; text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; }
+td { font-size: 0.82rem; padding: 0.9rem 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--blanc); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ── Badges statut ──────────────────────────────────────── */
+.badge { display: inline-block; padding: 0.2rem 0.7rem; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 400; }
+.badge-pending   { background: rgba(232,168,74,0.12);  color: var(--warning); }
+.badge-confirmed { background: rgba(76,175,125,0.12);  color: var(--success); }
+.badge-cancelled { background: rgba(196,122,122,0.12); color: var(--danger); }
+
+/* ── Formulaires ────────────────────────────────────────── */
+.form-section { background: var(--card); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.5rem; }
+.form-section-title { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--argent); margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--argent); margin-bottom: 0.5rem; }
+.form-group input, .form-group select {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  color: var(--perle); padding: 0.7rem 1rem; font-family: var(--font-sans); font-size: 0.85rem;
+  font-weight: 300; outline: none; transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus { border-color: rgba(232,225,216,0.3); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+
+/* ── Boutons ────────────────────────────────────────────── */
+.btn-admin {
+  display: inline-block; padding: 0.8rem 1.8rem; background: var(--perle); color: var(--noir);
+  font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+  border: none; font-family: var(--font-sans); font-weight: 400; transition: background 0.2s; width: 100%;
+}
+.btn-admin:hover { background: var(--blanc); }
+.btn-sm {
+  padding: 0.4rem 0.9rem; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--argent);
+  font-family: var(--font-sans); transition: all 0.2s;
+}
+.btn-sm:hover           { border-color: var(--perle); color: var(--perle); }
+.btn-sm.btn-confirm     { border-color: rgba(76,175,125,0.4); color: var(--success); }
+.btn-sm.btn-confirm:hover { background: rgba(76,175,125,0.1); }
+.btn-sm.btn-cancel      { border-color: rgba(196,122,122,0.4); color: var(--danger); }
+.btn-sm.btn-cancel:hover  { background: rgba(196,122,122,0.1); }
+.btn-save { padding: 0.8rem 2rem; background: var(--perle); color: var(--noir); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; border: none; font-family: var(--font-sans); transition: background 0.2s; }
+.btn-save:hover { background: var(--blanc); }
+.btn-danger { padding: 0.8rem 2rem; background: transparent; color: var(--danger); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(196,122,122,0.3); font-family: var(--font-sans); transition: all 0.2s; }
+.btn-danger:hover { background: rgba(196,122,122,0.1); }
+
+/* ── Calendrier admin ───────────────────────────────────── */
+.cal-admin-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 1.5rem; }
+.cal-admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.cal-admin-month { font-family: var(--font-serif); font-size: 1.2rem; color: var(--perle); }
+.cal-admin-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; color: var(--argent); }
+.cal-admin-day:hover:not(.empty):not(.past) { border-color: var(--perle); color: var(--perle); }
+.cal-admin-day.past    { opacity: 0.25; cursor: default; }
+.cal-admin-day.booked  { background: rgba(196,122,122,0.15); color: var(--danger); border-color: rgba(196,122,122,0.3); }
+.cal-admin-day.blocked { background: rgba(232,168,74,0.15); color: var(--warning); border-color: rgba(232,168,74,0.3); }
+.cal-admin-day.today   { border-color: rgba(232,225,216,0.3); color: var(--perle); }
+.cal-day-name-admin    { text-align: center; font-size: 0.58rem; letter-spacing: 0.1em; color: var(--argent); opacity: 0.5; padding: 0.4rem 0; }
+.cal-legend { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.cal-legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--argent); }
+.cal-legend-dot { width: 12px; height: 12px; border-radius: 0; }
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-admin { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; background: var(--card); border: 1px solid var(--border); color: var(--perle); padding: 1rem 1.5rem; font-size: 0.78rem; transform: translateY(120%); opacity: 0; transition: all 0.3s; max-width: 300px; }
+.toast-admin.show { transform: translateY(0); opacity: 1; }
+.toast-admin.success { border-left: 2px solid var(--success); }
+.toast-admin.error   { border-left: 2px solid var(--danger); }
+
+/* ── Tarifs grid ────────────────────────────────────────── */
+.tarifs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.tarif-card { background: var(--card); border: 1px solid var(--border); padding: 1.5rem; }
+.tarif-label { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--argent); margin-bottom: 0.8rem; }
+.tarif-input { display: flex; align-items: center; gap: 0.5rem; }
+.tarif-input input { width: 100px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--perle); padding: 0.6rem 0.8rem; font-size: 1.1rem; font-family: var(--font-serif); text-align: right; outline: none; }
+.tarif-input span { color: var(--argent); font-family: var(--font-serif); font-size: 1.1rem; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1.5rem; }
+  .form-row { grid-template-columns: 1fr; }
+}
