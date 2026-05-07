@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calendrier — Admin Loft Deliciae</title>
   <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .cal-admin-day.range-start { outline: 2px solid var(--perle); background: rgba(212,196,176,0.25); }
+    .cal-admin-day.range-end   { outline: 2px solid var(--perle); background: rgba(212,196,176,0.25); }
+    .cal-admin-day.in-range    { background: rgba(212,196,176,0.12); }
+    .selection-info { font-size:0.78rem; color:var(--argent); margin-bottom:0.8rem; min-height:1.2em; }
+  </style>
 </head>
 <body>
   <aside class="sidebar">
@@ -14,6 +20,8 @@
       <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>Réservations</a>
       <a class="nav-item active" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
       <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+      <a class="nav-item" href="textes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Textes</a>
+      <a class="nav-item" href="photos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</a>
     </nav>
     <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
   </aside>
@@ -24,7 +32,7 @@
       <p class="page-sub">Bloquez ou débloquez des dates manuellement</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:2rem;align-items:start">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:2rem;align-items:start">
       <!-- Calendrier -->
       <div class="form-section">
         <div class="cal-admin-header">
@@ -42,25 +50,32 @@
         <div class="cal-legend">
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(196,122,122,0.4)"></div>Réservé</div>
           <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(232,168,74,0.4)"></div>Bloqué manuellement</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(212,196,176,0.25)"></div>Sélectionné</div>
         </div>
       </div>
 
       <!-- Panel action -->
       <div>
         <div class="form-section">
-          <div class="form-section-title">Bloquer une date</div>
+          <div class="form-section-title">Bloquer des dates</div>
+          <div class="selection-info" id="selectionInfo">Cliquez sur une date pour commencer</div>
           <div class="form-group">
-            <label>Date sélectionnée</label>
-            <input type="text" id="selectedDate" readonly placeholder="Cliquez sur une date" style="cursor:default">
+            <label>Début</label>
+            <input type="text" id="selectedStart" readonly placeholder="—" style="cursor:default">
+          </div>
+          <div class="form-group">
+            <label>Fin <small style="color:var(--argent)">(optionnel — même date si une seule nuit)</small></label>
+            <input type="text" id="selectedEnd" readonly placeholder="—" style="cursor:default">
           </div>
           <div class="form-group">
             <label>Raison (optionnel)</label>
             <input type="text" id="blockRaison" placeholder="Ex: Maintenance, personnel...">
           </div>
-          <div style="display:flex;gap:0.8rem;margin-top:1rem">
-            <button class="btn-save" onclick="blockDate()" style="flex:1">Bloquer</button>
-            <button class="btn-danger" onclick="unblockDate()" style="flex:1">Débloquer</button>
+          <div style="display:flex;gap:0.8rem;margin-top:1rem;flex-wrap:wrap">
+            <button class="btn-save" onclick="blockDates()" style="flex:1">Bloquer</button>
+            <button class="btn-danger" onclick="unblockDates()" style="flex:1">Débloquer</button>
           </div>
+          <button class="btn-sm" onclick="clearSelection()" style="margin-top:0.6rem;width:100%;opacity:0.6">Effacer la sélection</button>
         </div>
 
         <div class="form-section" style="margin-top:1rem">
@@ -78,7 +93,8 @@
     let month = new Date().getMonth();
     let bookedDates = new Set();
     let blockedDates = new Set();
-    let selectedDate = null;
+    let selectedStart = null;
+    let selectedEnd   = null;
 
     async function loadData() {
       const [datesRes, blockedRes] = await Promise.all([
@@ -118,19 +134,65 @@
         else if (blockedDates.has(dateStr)) el.classList.add('blocked');
         else if (dateStr === today) el.classList.add('today');
 
-        if (dateStr === selectedDate) el.style.outline = '2px solid var(--perle)';
+        // Range highlight
+        if (selectedStart && selectedEnd) {
+          if (dateStr === selectedStart) el.classList.add('range-start');
+          else if (dateStr === selectedEnd) el.classList.add('range-end');
+          else if (dateStr > selectedStart && dateStr < selectedEnd) el.classList.add('in-range');
+        } else if (selectedStart && dateStr === selectedStart) {
+          el.classList.add('range-start');
+        }
 
         if (dateStr >= today) {
           el.style.cursor = 'pointer';
-          el.addEventListener('click', () => {
-            selectedDate = dateStr;
-            document.getElementById('selectedDate').value = new Date(dateStr).toLocaleDateString('fr-FR');
-            render();
-          });
+          el.addEventListener('click', () => onDayClick(dateStr));
         }
 
         grid.appendChild(el);
       }
+    }
+
+    function onDayClick(dateStr) {
+      if (!selectedStart || (selectedStart && selectedEnd)) {
+        selectedStart = dateStr;
+        selectedEnd   = null;
+      } else {
+        if (dateStr < selectedStart) {
+          selectedEnd   = selectedStart;
+          selectedStart = dateStr;
+        } else if (dateStr === selectedStart) {
+          selectedEnd = null;
+        } else {
+          selectedEnd = dateStr;
+        }
+      }
+      updateSelectionUI();
+      render();
+    }
+
+    function updateSelectionUI() {
+      const fmt = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR') : '—';
+      document.getElementById('selectedStart').value = fmt(selectedStart);
+      document.getElementById('selectedEnd').value   = fmt(selectedEnd);
+      if (!selectedStart) {
+        document.getElementById('selectionInfo').textContent = 'Cliquez sur une date pour commencer';
+      } else if (!selectedEnd) {
+        document.getElementById('selectionInfo').textContent = '1 date sélectionnée — cliquez sur une 2e date pour une plage';
+      } else {
+        const n = daysBetween(selectedStart, selectedEnd) + 1;
+        document.getElementById('selectionInfo').textContent = `${n} jour${n > 1 ? 's' : ''} sélectionné${n > 1 ? 's' : ''}`;
+      }
+    }
+
+    function daysBetween(a, b) {
+      return Math.round((new Date(b) - new Date(a)) / 86400000);
+    }
+
+    function clearSelection() {
+      selectedStart = null;
+      selectedEnd   = null;
+      updateSelectionUI();
+      render();
     }
 
     function renderBlockedList(blocked) {
@@ -138,26 +200,41 @@
       if (!blocked.length) { el.textContent = 'Aucune date bloquée'; return; }
       el.innerHTML = blocked.map(b => `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border)">
-          <span>${new Date(b.date).toLocaleDateString('fr-FR')}${b.raison ? ` — ${b.raison}` : ''}</span>
+          <span>${new Date(b.date + 'T12:00:00').toLocaleDateString('fr-FR')}${b.raison ? ` — ${b.raison}` : ''}</span>
           <button class="btn-sm" onclick="quickUnblock('${b.date}')" style="font-size:0.55rem">✕</button>
         </div>
       `).join('');
     }
 
-    async function blockDate() {
-      if (!selectedDate) { toast('Sélectionnez une date', 'error'); return; }
+    async function blockDates() {
+      if (!selectedStart) { toast('Sélectionnez au moins une date', 'error'); return; }
       const raison = document.getElementById('blockRaison').value;
+      const body = selectedEnd && selectedEnd !== selectedStart
+        ? { date_debut: selectedStart, date_fin: selectedEnd, raison }
+        : { date: selectedStart, raison };
       const res = await fetch('/api/admin/blocked-dates', {
         method: 'POST', headers: authHeaders(),
-        body: JSON.stringify({ date: selectedDate, raison })
+        body: JSON.stringify(body)
       });
-      if (res.ok) { toast('Date bloquée'); selectedDate = null; loadData(); }
-      else toast('Erreur', 'error');
+      if (res.ok) {
+        toast('Date(s) bloquée(s) ✓');
+        clearSelection();
+        document.getElementById('blockRaison').value = '';
+        loadData();
+      } else toast('Erreur', 'error');
     }
 
-    async function unblockDate() {
-      if (!selectedDate) { toast('Sélectionnez une date', 'error'); return; }
-      await quickUnblock(selectedDate);
+    async function unblockDates() {
+      if (!selectedStart) { toast('Sélectionnez au moins une date', 'error'); return; }
+      const body = selectedEnd && selectedEnd !== selectedStart
+        ? { date_debut: selectedStart, date_fin: selectedEnd }
+        : { date: selectedStart };
+      const res = await fetch('/api/admin/blocked-dates', {
+        method: 'DELETE', headers: authHeaders(),
+        body: JSON.stringify(body)
+      });
+      if (res.ok) { toast('Date(s) débloquée(s) ✓'); clearSelection(); loadData(); }
+      else toast('Erreur', 'error');
     }
 
     async function quickUnblock(date) {
@@ -165,7 +242,7 @@
         method: 'DELETE', headers: authHeaders(),
         body: JSON.stringify({ date })
       });
-      if (res.ok) { toast('Date débloquée'); selectedDate = null; loadData(); }
+      if (res.ok) { toast('Date débloquée'); loadData(); }
       else toast('Erreur', 'error');
     }
 

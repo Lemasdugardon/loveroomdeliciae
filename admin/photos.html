@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photos — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .photos-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; margin-top:1.5rem; }
+    .photo-card { background:var(--card); border:1px solid var(--border); overflow:hidden; }
+    .photo-img { width:100%; height:140px; object-fit:cover; display:block; background:#1a1a1a; }
+    .photo-img-placeholder { width:100%; height:140px; display:flex; align-items:center; justify-content:center; background:#1a1a1a; color:var(--argent); font-size:0.7rem; }
+    .photo-info { padding:0.8rem; }
+    .photo-alt { font-size:0.72rem; color:var(--argent); margin-bottom:0.5rem; }
+    .photo-actions { display:flex; gap:0.5rem; flex-wrap:wrap; }
+    .photo-badge { font-size:0.55rem; letter-spacing:0.1em; padding:0.2rem 0.5rem; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Loft Deliciae</span><small>Administration</small></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>Réservations</a>
+      <a class="nav-item" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
+      <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+      <a class="nav-item" href="textes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Textes</a>
+      <a class="nav-item active" href="photos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</a>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Photos</h1>
+      <p class="page-sub">Gérez les photos affichées sur le site</p>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Ajouter une photo</div>
+      <div class="form-group">
+        <label>URL de la photo</label>
+        <input type="url" id="newUrl" placeholder="https://... (lien direct vers l'image)">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Description (alt)</label>
+          <input type="text" id="newAlt" placeholder="Chambre vue de dessus...">
+        </div>
+        <div class="form-group">
+          <label>Catégorie</label>
+          <select id="newCategorie" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--perle);padding:0.7rem 1rem;font-family:var(--font-sans);font-size:0.85rem;outline:none">
+            <option value="galerie">Galerie</option>
+            <option value="hero">Hero / Bannière</option>
+            <option value="chambre">Chambre</option>
+            <option value="salle_de_bain">Salle de bain</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Ordre d'affichage</label>
+        <input type="number" id="newOrdre" value="0" min="0" style="width:100px">
+      </div>
+      <button class="btn-save" onclick="addPhoto()">Ajouter la photo</button>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Photos existantes</div>
+      <div class="photos-grid" id="photosGrid">
+        <div style="opacity:0.4;font-size:0.78rem">Chargement...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    let photos = [];
+
+    async function loadPhotos() {
+      const res = await fetch('/api/admin/photos', { headers: authHeaders() });
+      if (!res.ok) { toast('Erreur de chargement', 'error'); return; }
+      photos = await res.json();
+      renderPhotos();
+    }
+
+    function renderPhotos() {
+      const grid = document.getElementById('photosGrid');
+      if (!photos.length) {
+        grid.innerHTML = '<div style="opacity:0.4;font-size:0.78rem">Aucune photo. Ajoutez-en une ci-dessus.</div>';
+        return;
+      }
+      grid.innerHTML = photos.map(p => `
+        <div class="photo-card">
+          ${p.url
+            ? `<img src="${p.url}" alt="${p.alt}" class="photo-img" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+            : ''
+          }
+          <div class="photo-img-placeholder" ${p.url ? 'style="display:none"' : ''}>Image non disponible</div>
+          <div class="photo-info">
+            <div class="photo-alt">${p.alt || '(sans description)'}</div>
+            <div style="font-size:0.6rem;color:var(--argent);margin-bottom:0.6rem">${p.categorie} — ordre: ${p.ordre}</div>
+            <div class="photo-actions">
+              <span class="badge ${p.actif ? 'badge-confirmed' : 'badge-cancelled'} photo-badge">${p.actif ? 'Actif' : 'Masqué'}</span>
+              <button class="btn-sm" onclick="togglePhoto(${p.id}, ${p.actif})" style="font-size:0.6rem">
+                ${p.actif ? 'Masquer' : 'Activer'}
+              </button>
+              <button class="btn-sm btn-cancel" onclick="deletePhoto(${p.id})" style="font-size:0.6rem">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function addPhoto() {
+      const url       = document.getElementById('newUrl').value.trim();
+      const alt       = document.getElementById('newAlt').value.trim();
+      const categorie = document.getElementById('newCategorie').value;
+      const ordre     = parseInt(document.getElementById('newOrdre').value) || 0;
+      if (!url) { toast('Entrez une URL', 'error'); return; }
+      const res = await fetch('/api/admin/photos', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ url, alt, categorie, ordre })
+      });
+      if (res.ok) {
+        toast('Photo ajoutée ✓');
+        document.getElementById('newUrl').value = '';
+        document.getElementById('newAlt').value = '';
+        document.getElementById('newOrdre').value = '0';
+        loadPhotos();
+      } else toast('Erreur', 'error');
+    }
+
+    async function togglePhoto(id, actif) {
+      const res = await fetch('/api/admin/photos', {
+        method: 'PATCH', headers: authHeaders(),
+        body: JSON.stringify({ id, actif: !actif })
+      });
+      if (res.ok) { toast(actif ? 'Photo masquée' : 'Photo activée'); loadPhotos(); }
+      else toast('Erreur', 'error');
+    }
+
+    async function deletePhoto(id) {
+      if (!confirm('Supprimer cette photo ?')) return;
+      const res = await fetch('/api/admin/photos', {
+        method: 'DELETE', headers: authHeaders(),
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) { toast('Photo supprimée'); loadPhotos(); }
+      else toast('Erreur', 'error');
+    }
+
+    loadPhotos();
+  </script>
+</body>
+</html>

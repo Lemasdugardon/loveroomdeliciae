@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Textes — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Loft Deliciae</span><small>Administration</small></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>Réservations</a>
+      <a class="nav-item" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
+      <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+      <a class="nav-item active" href="textes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Textes</a>
+      <a class="nav-item" href="photos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</a>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Textes du site</h1>
+      <p class="page-sub">Modifiez les contenus affichés sur le site vitrine</p>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Section Hero (page d'accueil)</div>
+      <div class="form-group">
+        <label>Titre principal</label>
+        <input type="text" id="texte_hero_titre" placeholder="Loft Deliciae">
+      </div>
+      <div class="form-group">
+        <label>Sous-titre</label>
+        <input type="text" id="texte_hero_sous_titre" placeholder="Un refuge de luxe...">
+      </div>
+      <div class="form-group">
+        <label>Texte du bouton CTA</label>
+        <input type="text" id="texte_hero_bouton" placeholder="Réserver votre séjour">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Section À propos / Le Loft</div>
+      <div class="form-group">
+        <label>Titre de section</label>
+        <input type="text" id="texte_about_titre" placeholder="Le Loft Deliciae">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="texte_about_desc" rows="4"
+          style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--perle);padding:0.7rem 1rem;font-family:var(--font-sans);font-size:0.85rem;font-weight:300;outline:none;resize:vertical"
+          placeholder="Description du loft..."></textarea>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Informations de contact</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Adresse</label>
+          <input type="text" id="texte_contact_adresse" placeholder="123 rue...">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="texte_contact_email" placeholder="contact@loftdeliciae.fr">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Téléphone</label>
+        <input type="text" id="texte_contact_tel" placeholder="+33 6 00 00 00 00">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-save" onclick="saveTextes()">Enregistrer les modifications</button>
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    const FIELDS = [
+      'texte_hero_titre', 'texte_hero_sous_titre', 'texte_hero_bouton',
+      'texte_about_titre', 'texte_about_desc',
+      'texte_contact_adresse', 'texte_contact_email', 'texte_contact_tel'
+    ];
+
+    async function loadTextes() {
+      const res = await fetch('/api/admin/textes', { headers: authHeaders() });
+      if (!res.ok) return;
+      const textes = await res.json();
+      FIELDS.forEach(key => {
+        const el = document.getElementById(key);
+        if (el && textes[key]) el.value = textes[key];
+      });
+    }
+
+    async function saveTextes() {
+      const textes = {};
+      FIELDS.forEach(key => {
+        const el = document.getElementById(key);
+        if (el) textes[key] = el.value;
+      });
+      const res = await fetch('/api/admin/textes', {
+        method: 'PATCH', headers: authHeaders(),
+        body: JSON.stringify(textes)
+      });
+      if (res.ok) toast('Textes enregistrés ✓');
+      else toast('Erreur', 'error');
+    }
+
+    loadTextes();
+  </script>
+</body>
+</html>

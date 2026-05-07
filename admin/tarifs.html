@@ -14,6 +14,8 @@
       <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>Réservations</a>
       <a class="nav-item" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
       <a class="nav-item active" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+      <a class="nav-item" href="textes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Textes</a>
+      <a class="nav-item" href="photos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</a>
     </nav>
     <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
   </aside>
@@ -30,9 +32,12 @@
       <div class="tarifs-grid" id="tarifsGrid">
         <div style="opacity:0.4;font-size:0.78rem">Chargement...</div>
       </div>
+      <div class="form-actions" style="margin-top:1.5rem;padding:0">
+        <button class="btn-save" onclick="saveTarifs()">Enregistrer les tarifs</button>
+      </div>
     </div>
 
-    <!-- Extras -->
+    <!-- Extras existants -->
     <div class="form-section">
       <div class="form-section-title">Options & extras</div>
       <table style="width:100%">
@@ -41,16 +46,42 @@
             <th>Option</th>
             <th>Prix</th>
             <th>Actif</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="extrasBody">
-          <tr><td colspan="3" style="opacity:0.4;text-align:center;padding:2rem">Chargement...</td></tr>
+          <tr><td colspan="4" style="opacity:0.4;text-align:center;padding:2rem">Chargement...</td></tr>
         </tbody>
       </table>
+      <div class="form-actions" style="margin-top:1.5rem;padding:0">
+        <button class="btn-save" onclick="saveExtras()">Enregistrer les extras</button>
+      </div>
     </div>
 
-    <div class="form-actions">
-      <button class="btn-save" onclick="saveTarifs()">Enregistrer les modifications</button>
+    <!-- Ajouter un extra -->
+    <div class="form-section">
+      <div class="form-section-title">Ajouter un extra</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Identifiant (clé)</label>
+          <input type="text" id="newExtraKey" placeholder="ex: jacuzzi_prive">
+        </div>
+        <div class="form-group">
+          <label>Nom affiché</label>
+          <input type="text" id="newExtraNom" placeholder="ex: Jacuzzi privé">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prix (€)</label>
+          <input type="number" id="newExtraPrix" placeholder="0" min="0" step="5">
+        </div>
+        <div class="form-group">
+          <label>Description (optionnel)</label>
+          <input type="text" id="newExtraDesc" placeholder="Courte description...">
+        </div>
+      </div>
+      <button class="btn-save" onclick="addExtra()">Ajouter l'extra</button>
     </div>
   </main>
 
@@ -81,9 +112,16 @@
     }
 
     function renderExtras() {
+      if (!extras.length) {
+        document.getElementById('extrasBody').innerHTML = '<tr><td colspan="4" style="opacity:0.4;text-align:center;padding:2rem">Aucun extra configuré</td></tr>';
+        return;
+      }
       document.getElementById('extrasBody').innerHTML = extras.map(e => `
         <tr>
-          <td>${e.nom}</td>
+          <td>
+            <strong>${e.nom}</strong>
+            ${e.description ? `<br><small style="opacity:0.5">${e.description}</small>` : ''}
+          </td>
           <td>
             <div style="display:flex;align-items:center;gap:0.5rem">
               <input type="number" id="extra-prix-${e.key}" value="${e.prix}" min="0" step="5"
@@ -95,6 +133,9 @@
             <input type="checkbox" id="extra-actif-${e.key}" ${e.actif ? 'checked' : ''}
               style="width:16px;height:16px;accent-color:var(--perle)">
           </td>
+          <td>
+            <button class="btn-sm btn-cancel" onclick="deleteExtra('${e.key}')" style="font-size:0.6rem">Supprimer</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -104,19 +145,61 @@
         type: t.type,
         prix: parseInt(document.getElementById(`tarif-${t.type}`).value) || t.prix
       }));
+      const res = await fetch('/api/admin/tarifs', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ tarifs: updatedTarifs, extras: [] })
+      });
+      if (res.ok) toast('Tarifs enregistrés ✓');
+      else toast('Erreur lors de la sauvegarde', 'error');
+    }
+
+    async function saveExtras() {
       const updatedExtras = extras.map(e => ({
         key:   e.key,
         prix:  parseInt(document.getElementById(`extra-prix-${e.key}`).value) || e.prix,
         actif: document.getElementById(`extra-actif-${e.key}`).checked
       }));
-
       const res = await fetch('/api/admin/tarifs', {
         method: 'PATCH',
         headers: authHeaders(),
-        body: JSON.stringify({ tarifs: updatedTarifs, extras: updatedExtras })
+        body: JSON.stringify({ tarifs: [], extras: updatedExtras })
       });
-      if (res.ok) toast('Tarifs enregistrés ✓');
+      if (res.ok) toast('Extras enregistrés ✓');
       else toast('Erreur lors de la sauvegarde', 'error');
+    }
+
+    async function addExtra() {
+      const key         = document.getElementById('newExtraKey').value.trim();
+      const nom         = document.getElementById('newExtraNom').value.trim();
+      const prix        = parseInt(document.getElementById('newExtraPrix').value) || 0;
+      const description = document.getElementById('newExtraDesc').value.trim();
+      if (!key || !nom) { toast('Renseignez la clé et le nom', 'error'); return; }
+      const res = await fetch('/api/admin/extras', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ key, nom, prix, description })
+      });
+      if (res.ok) {
+        toast('Extra ajouté ✓');
+        document.getElementById('newExtraKey').value  = '';
+        document.getElementById('newExtraNom').value  = '';
+        document.getElementById('newExtraPrix').value = '';
+        document.getElementById('newExtraDesc').value = '';
+        loadTarifs();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast(err.error || 'Erreur', 'error');
+      }
+    }
+
+    async function deleteExtra(key) {
+      if (!confirm('Supprimer cet extra ?')) return;
+      const res = await fetch('/api/admin/extras', {
+        method: 'DELETE', headers: authHeaders(),
+        body: JSON.stringify({ key })
+      });
+      if (res.ok) { toast('Extra supprimé'); loadTarifs(); }
+      else toast('Erreur', 'error');
     }
 
     loadTarifs();
