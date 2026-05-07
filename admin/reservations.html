@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réservations — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Loft Deliciae</span><small>Administration</small></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item active" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Réservations</a>
+      <a class="nav-item" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
+      <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Réservations</h1>
+      <p class="page-sub">Gérez toutes les demandes de séjour</p>
+    </div>
+
+    <!-- Filtres -->
+    <div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+      <button class="btn-sm" onclick="filterBy('all')"     id="f-all">Toutes</button>
+      <button class="btn-sm" onclick="filterBy('pending')"  id="f-pending">En attente</button>
+      <button class="btn-sm" onclick="filterBy('confirmed')" id="f-confirmed">Confirmées</button>
+      <button class="btn-sm" onclick="filterBy('cancelled')" id="f-cancelled">Annulées</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Dates</th>
+            <th>Durée</th>
+            <th>Extras</th>
+            <th>Total</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="resaBody">
+          <tr><td colspan="7" style="text-align:center;opacity:0.4;padding:2rem;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    let allResas = [];
+    let currentFilter = 'all';
+
+    async function loadResas() {
+      const res = await fetch('/api/admin/reservations', { headers: authHeaders() });
+      if (!res.ok) { toast('Erreur de chargement', 'error'); return; }
+      allResas = await res.json();
+      render();
+    }
+
+    function filterBy(f) {
+      currentFilter = f;
+      document.querySelectorAll('[id^="f-"]').forEach(b => b.style.color = '');
+      document.getElementById(`f-${f}`).style.color = 'var(--perle)';
+      render();
+    }
+
+    function render() {
+      const list = currentFilter === 'all' ? allResas : allResas.filter(r => r.statut === currentFilter);
+      const tbody = document.getElementById('resaBody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.4;padding:2rem;">Aucune réservation</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(r => {
+        const extrasNames = (r.extras || []).map(e => e.nom || e).join(', ') || '—';
+        return `
+          <tr>
+            <td>
+              <strong>${r.prenom} ${r.nom}</strong><br>
+              <small style="opacity:0.5">${r.email}</small><br>
+              <small style="opacity:0.4">${r.telephone || ''}</small>
+            </td>
+            <td>${dateFR(r.date_arrivee)}<br><small style="opacity:0.5">→ ${dateFR(r.date_depart)}</small></td>
+            <td style="text-transform:capitalize">${r.duree_type}</td>
+            <td style="font-size:0.72rem;max-width:150px">${extrasNames}</td>
+            <td><strong>${euros(r.montant_total)}</strong><br><small style="opacity:0.4">${euros(r.montant_base)} base</small></td>
+            <td><span class="badge badge-${r.statut}">${r.statut}</span></td>
+            <td>
+              ${r.statut === 'pending' ? `<button class="btn-sm btn-confirm" onclick="updateStatut('${r.id}','confirmed')">Confirmer</button>` : ''}
+              ${r.statut !== 'cancelled' ? `<button class="btn-sm btn-cancel" style="margin-top:4px" onclick="updateStatut('${r.id}','cancelled')">Annuler</button>` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function updateStatut(id, statut) {
+      const res = await fetch('/api/admin/reservations', {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ id, statut })
+      });
+      if (res.ok) { toast(`Réservation ${statut === 'confirmed' ? 'confirmée' : 'annulée'}`); loadResas(); }
+      else toast('Erreur', 'error');
+    }
+
+    loadResas();
+    filterBy('all');
+  </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>Loft Deliciae</span>
+      <small>Administration</small>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="index.html" data-page="index">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="reservations.html" data-page="reservations">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Réservations
+      </a>
+      <a class="nav-item" href="calendar.html" data-page="calendar">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Calendrier
+      </a>
+      <a class="nav-item" href="tarifs.html" data-page="tarifs">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Tarifs & Extras
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="logout-btn" onclick="logout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Déconnexion
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Vue d'ensemble — Loft Deliciae</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="cards-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total réservations</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Confirmées</div>
+        <div class="stat-value success" id="statConfirmed">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">En attente</div>
+        <div class="stat-value warning" id="statPending">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CA ce mois</div>
+        <div class="stat-value" id="statMonthRevenue">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CA total</div>
+        <div class="stat-value" id="statRevenue">—</div>
+      </div>
+    </div>
+
+    <!-- Prochaines réservations -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <span class="table-title">Prochaines réservations</span>
+        <a href="reservations.html" class="btn-sm">Voir tout</a>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Arrivée</th>
+            <th>Départ</th>
+            <th>Montant</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody id="upcomingBody">
+          <tr><td colspan="5" style="text-align:center;opacity:0.4;padding:2rem;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    async function loadStats() {
+      const res = await fetch('/api/admin/stats', { headers: authHeaders() });
+      if (!res.ok) return;
+      const s = await res.json();
+
+      document.getElementById('statTotal').textContent    = s.total;
+      document.getElementById('statConfirmed').textContent = s.confirmed;
+      document.getElementById('statPending').textContent   = s.pending;
+      document.getElementById('statRevenue').textContent   = euros(s.revenue);
+      document.getElementById('statMonthRevenue').textContent = euros(s.revenue_month);
+
+      const tbody = document.getElementById('upcomingBody');
+      if (!s.upcoming.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;opacity:0.4;padding:2rem;">Aucune réservation à venir</td></tr>';
+        return;
+      }
+      tbody.innerHTML = s.upcoming.map(r => `
+        <tr>
+          <td>${r.prenom} ${r.nom}<br><small style="opacity:0.5">${r.email}</small></td>
+          <td>${dateFR(r.date_arrivee)}</td>
+          <td>${dateFR(r.date_depart)}</td>
+          <td>${euros(r.montant_total)}</td>
+          <td><span class="badge badge-${r.statut}">${r.statut}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendrier — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Loft Deliciae</span><small>Administration</small></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>Réservations</a>
+      <a class="nav-item active" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
+      <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()">Déconnexion</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Calendrier</h1>
+      <p class="page-sub">Bloquez ou débloquez des dates manuellement</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:2rem;align-items:start">
+      <!-- Calendrier -->
+      <div class="form-section">
+        <div class="cal-admin-header">
+          <button class="btn-sm" onclick="prevMonth()">←</button>
+          <span class="cal-admin-month" id="calMonth"></span>
+          <button class="btn-sm" onclick="nextMonth()">→</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:0.5rem">
+          <div class="cal-day-name-admin">Lun</div><div class="cal-day-name-admin">Mar</div>
+          <div class="cal-day-name-admin">Mer</div><div class="cal-day-name-admin">Jeu</div>
+          <div class="cal-day-name-admin">Ven</div><div class="cal-day-name-admin">Sam</div>
+          <div class="cal-day-name-admin">Dim</div>
+        </div>
+        <div class="cal-admin-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(196,122,122,0.4)"></div>Réservé</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(232,168,74,0.4)"></div>Bloqué manuellement</div>
+        </div>
+      </div>
+
+      <!-- Panel action -->
+      <div>
+        <div class="form-section">
+          <div class="form-section-title">Bloquer une date</div>
+          <div class="form-group">
+            <label>Date sélectionnée</label>
+            <input type="text" id="selectedDate" readonly placeholder="Cliquez sur une date" style="cursor:default">
+          </div>
+          <div class="form-group">
+            <label>Raison (optionnel)</label>
+            <input type="text" id="blockRaison" placeholder="Ex: Maintenance, personnel...">
+          </div>
+          <div style="display:flex;gap:0.8rem;margin-top:1rem">
+            <button class="btn-save" onclick="blockDate()" style="flex:1">Bloquer</button>
+            <button class="btn-danger" onclick="unblockDate()" style="flex:1">Débloquer</button>
+          </div>
+        </div>
+
+        <div class="form-section" style="margin-top:1rem">
+          <div class="form-section-title">Dates bloquées</div>
+          <div id="blockedList" style="font-size:0.78rem;color:var(--argent)">Chargement...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+  <script>
+    const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    let year = new Date().getFullYear();
+    let month = new Date().getMonth();
+    let bookedDates = new Set();
+    let blockedDates = new Set();
+    let selectedDate = null;
+
+    async function loadData() {
+      const [datesRes, blockedRes] = await Promise.all([
+        fetch('/api/dates'),
+        fetch('/api/admin/blocked-dates', { headers: authHeaders() })
+      ]);
+      const { booked } = await datesRes.json();
+      const blocked = await blockedRes.json();
+      bookedDates  = new Set(booked);
+      blockedDates = new Set(blocked.map(b => b.date));
+      render();
+      renderBlockedList(blocked);
+    }
+
+    function render() {
+      document.getElementById('calMonth').textContent = `${MONTHS[month]} ${year}`;
+      const grid = document.getElementById('calGrid');
+      grid.innerHTML = '';
+      const firstDow = (new Date(year, month, 1).getDay() + 6) % 7;
+      const lastDay  = new Date(year, month + 1, 0).getDate();
+      const today    = new Date().toISOString().split('T')[0];
+
+      for (let i = 0; i < firstDow; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-admin-day empty';
+        grid.appendChild(el);
+      }
+
+      for (let d = 1; d <= lastDay; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const el = document.createElement('div');
+        el.className = 'cal-admin-day';
+        el.textContent = d;
+
+        if (dateStr < today) el.classList.add('past');
+        else if (bookedDates.has(dateStr) && !blockedDates.has(dateStr)) el.classList.add('booked');
+        else if (blockedDates.has(dateStr)) el.classList.add('blocked');
+        else if (dateStr === today) el.classList.add('today');
+
+        if (dateStr === selectedDate) el.style.outline = '2px solid var(--perle)';
+
+        if (dateStr >= today) {
+          el.style.cursor = 'pointer';
+          el.addEventListener('click', () => {
+            selectedDate = dateStr;
+            document.getElementById('selectedDate').value = new Date(dateStr).toLocaleDateString('fr-FR');
+            render();
+          });
+        }
+
+        grid.appendChild(el);
+      }
+    }
+
+    function renderBlockedList(blocked) {
+      const el = document.getElementById('blockedList');
+      if (!blocked.length) { el.textContent = 'Aucune date bloquée'; return; }
+      el.innerHTML = blocked.map(b => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0;border-bottom:1px solid var(--border)">
+          <span>${new Date(b.date).toLocaleDateString('fr-FR')}${b.raison ? ` — ${b.raison}` : ''}</span>
+          <button class="btn-sm" onclick="quickUnblock('${b.date}')" style="font-size:0.55rem">✕</button>
+        </div>
+      `).join('');
+    }
+
+    async function blockDate() {
+      if (!selectedDate) { toast('Sélectionnez une date', 'error'); return; }
+      const raison = document.getElementById('blockRaison').value;
+      const res = await fetch('/api/admin/blocked-dates', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ date: selectedDate, raison })
+      });
+      if (res.ok) { toast('Date bloquée'); selectedDate = null; loadData(); }
+      else toast('Erreur', 'error');
+    }
+
+    async function unblockDate() {
+      if (!selectedDate) { toast('Sélectionnez une date', 'error'); return; }
+      await quickUnblock(selectedDate);
+    }
+
+    async function quickUnblock(date) {
+      const res = await fetch('/api/admin/blocked-dates', {
+        method: 'DELETE', headers: authHeaders(),
+        body: JSON.stringify({ date })
+      });
+      if (res.ok) { toast('Date débloquée'); selectedDate = null; loadData(); }
+      else toast('Erreur', 'error');
+    }
+
+    function prevMonth() { month--; if (month < 0) { month = 11; year--; } render(); }
+    function nextMonth() { month++; if (month > 11) { month = 0; year++; } render(); }
+
+    loadData();
+  </script>
+</body>
+</html>

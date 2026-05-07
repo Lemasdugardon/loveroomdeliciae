@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <div class="login-logo">Loft Deliciae</div>
+    <div class="login-sub">Panel d'administration</div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-admin">Connexion</button>
+      <p id="loginError" class="error-msg" style="display:none;">Mot de passe incorrect</p>
+    </form>
+  </div>
+  <script>
+    if (localStorage.getItem('admin_token')) window.location.href = 'index.html';
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const password = document.getElementById('password').value;
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      if (res.ok) {
+        localStorage.setItem('admin_token', password);
+        window.location.href = 'index.html';
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
