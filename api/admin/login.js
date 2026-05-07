@@ -1,18 +1,11 @@
-import { supabase } from '../_supabase.js';
-
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
   const { password } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD || 'LoftAdmin2024!';
 
-  const { data } = await supabase
-    .from('settings')
-    .select('valeur')
-    .eq('cle', 'admin_password')
-    .single();
-
-  if (!data || data.valeur !== password) {
+  if (!password || password !== adminPassword) {
     return res.status(401).json({ error: 'Mot de passe incorrect' });
   }
 
