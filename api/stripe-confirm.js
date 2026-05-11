@@ -44,7 +44,10 @@ export default async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  // Envoi des emails de confirmation
+  // Répondre immédiatement au client sans attendre les emails
+  res.status(200).json({ ok: true, resa_id: resa.id });
+
+  // Envoi des emails en arrière-plan (sans bloquer la réponse)
   const r = resa;
   const extrasHtml = (r.extras || []).map(e =>
     `<tr style="background:#f9f9f9;"><td style="padding:6px 8px;color:#666;">+ ${e.nom}</td><td style="padding:6px 8px;text-align:right;">${euros(e.prix)}</td></tr>`
@@ -92,5 +95,5 @@ export default async function handler(req, res) {
     </div>`,
   });
 
-  return res.status(200).json({ ok: true, resa_id: r.id });
+  // (réponse déjà envoyée plus haut)
 }
