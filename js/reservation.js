@@ -5,7 +5,8 @@
 (function () {
   'use strict';
 
-  let PRIX_BASE   = { nuit: 350, weekend: 332.5, long: 315, nuit_longue: 300, semaine: 0 };
+  // Totaux stockés en base : nuit=350, weekend=665 (332.5×2), long=945 (315×3), nuit_longue=300 (par nuit)
+  let PRIX_BASE   = { nuit: 350, weekend: 665, long: 945, nuit_longue: 300, semaine: 0 };
   let BOOKED_DATES = new Set();
 
   async function loadData() {
@@ -26,11 +27,15 @@
         const priceEl = opt.querySelector('.duree-option-price');
         if (!priceEl) return;
         if (t.type === 'semaine') return;
-        const prixFR = t.prix.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        const fmt = v => v.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
         if (t.type === 'nuit') {
-          priceEl.textContent = `à partir de ${prixFR} €`;
-        } else {
-          priceEl.textContent = `à partir de ${prixFR} €/nuit`;
+          priceEl.textContent = `à partir de ${fmt(t.prix)} €`;
+        } else if (t.type === 'weekend') {
+          priceEl.textContent = `à partir de ${fmt(t.prix / 2)} €/nuit`;
+        } else if (t.type === 'long') {
+          priceEl.textContent = `à partir de ${fmt(t.prix / 3)} €/nuit`;
+        } else if (t.type === 'nuit_longue') {
+          priceEl.textContent = `à partir de ${fmt(t.prix)} €/nuit`;
         }
       });
 
@@ -250,9 +255,9 @@
 
   function prixPourNuits(nuits) {
     if (nuits <= 1)               return PRIX_BASE.nuit              || 350;
-    if (nuits === 2)              return Math.round((PRIX_BASE.weekend     || 332.5) * 2);
-    if (nuits === 3)              return Math.round((PRIX_BASE.long        || 315)   * 3);
-    if (nuits >= 4 && nuits <= 6) return Math.round((PRIX_BASE.nuit_longue || 300)   * nuits);
+    if (nuits === 2)              return PRIX_BASE.weekend            || 665;
+    if (nuits === 3)              return PRIX_BASE.long               || 945;
+    if (nuits >= 4 && nuits <= 6) return Math.round((PRIX_BASE.nuit_longue || 300) * nuits);
     return 0;
   }
 

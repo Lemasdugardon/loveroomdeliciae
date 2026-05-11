@@ -98,28 +98,37 @@
       renderExtras();
     }
 
-    const TARIF_DISPLAY = {
-      nuit:        { label: '1 nuitée',      suffix: '€',     help: 'Prix total pour 1 nuit' },
-      weekend:     { label: '2 nuitées',     suffix: '€/nuit', help: 'Ex : 332,50 × 2 = 665 €' },
-      long:        { label: '3 nuitées',     suffix: '€/nuit', help: 'Ex : 315 × 3 = 945 €' },
-      nuit_longue: { label: '4 à 6 nuitées', suffix: '€/nuit', help: 'Multiplié par le nb de nuits' },
+    // nuits = diviseur pour obtenir le prix/nuit à afficher dans l'input
+    // nuit_longue : prix stocké = prix/nuit directement (pas de total fixe)
+    const TARIF_META = {
+      nuit:        { label: '1 nuitée',      nuits: 1, defaultPrix: 350,  help: 'Prix total pour 1 nuit' },
+      weekend:     { label: '2 nuitées',     nuits: 2, defaultPrix: 665,  help: 'Sera multiplié × 2 pour le total' },
+      long:        { label: '3 nuitées',     nuits: 3, defaultPrix: 945,  help: 'Sera multiplié × 3 pour le total' },
+      nuit_longue: { label: '4 à 6 nuitées', nuits: 1, defaultPrix: 300,  help: 'Multiplié par le nombre de nuits réel' },
     };
 
+    function prixParNuit(type, prixDB) {
+      const m = TARIF_META[type];
+      if (!m) return prixDB;
+      return Math.round((prixDB / m.nuits) * 100) / 100; // arrondi 2 décimales
+    }
+
     function renderTarifs() {
-      // Ensure nuit_longue is always shown even if absent from DB
       const types = ['nuit', 'weekend', 'long', 'nuit_longue'];
       const byType = {};
       tarifs.forEach(t => { byType[t.type] = t; });
 
       document.getElementById('tarifsGrid').innerHTML = types.map(type => {
-        const t = byType[type] || { type, prix: type === 'nuit' ? 350 : type === 'weekend' ? 332.5 : type === 'long' ? 315 : 300 };
-        const meta = TARIF_DISPLAY[type];
+        const meta = TARIF_META[type];
+        const prixDB = byType[type] ? byType[type].prix : meta.defaultPrix;
+        const valInput = prixParNuit(type, prixDB); // ce que l'admin voit et modifie
+        const suffix = type === 'nuit' ? '€' : '€/nuit';
         return `
         <div class="tarif-card">
           <div class="tarif-label">${meta.label}</div>
           <div class="tarif-input">
-            <input type="number" id="tarif-${type}" value="${t.prix}" min="0" step="0.5">
-            <span>${meta.suffix}</span>
+            <input type="number" id="tarif-${type}" value="${valInput}" min="0" step="0.5">
+            <span>${suffix}</span>
           </div>
           <div style="font-size:0.65rem;color:var(--argent);margin-top:0.5rem">${meta.help}</div>
         </div>`;
@@ -164,7 +173,9 @@
       const types = ['nuit', 'weekend', 'long', 'nuit_longue'];
       const updatedTarifs = types.map(type => {
         const input = document.getElementById(`tarif-${type}`);
-        return { type, prix: parseFloat(input?.value) || 0 };
+        const perNuit = parseFloat(input?.value) || 0;
+        const nuits = TARIF_META[type].nuits;
+        return { type, prix: Math.round(perNuit * nuits) }; // on stocke le total entier en base
       });
       const res = await fetch('/api/admin/tarifs', {
         method: 'PATCH',
