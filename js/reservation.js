@@ -146,18 +146,12 @@
   function applyTarifFromSelection() {
     const nuits = Math.round((state.selectedEnd - state.selectedStart) / 86400000);
     state.nuits = nuits;
-    // Highlight matching duree-option
-    let bestType = null;
-    if      (nuits <= 1) bestType = 'nuit';
-    else if (nuits === 2) bestType = 'weekend';
-    else if (nuits === 3) bestType = 'long';
-    else if (nuits >= 7) bestType = 'semaine';
+    // Surligner la ligne tarifaire correspondante
+    const bestType = nuits <= 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : nuits >= 7 ? 'semaine' : null;
     document.querySelectorAll('.duree-option').forEach(o => {
-      const match = bestType && o.dataset.duree === bestType;
-      o.classList.toggle('selected', match);
-      o.setAttribute('aria-checked', match ? 'true' : 'false');
+      o.classList.toggle('selected', bestType ? o.dataset.duree === bestType : false);
     });
-    state.duree = bestType || 'nuit';
+    state.duree = bestType || 'custom';
   }
 
   grid.addEventListener('mouseleave', () => {
@@ -176,25 +170,7 @@
     }
   }
 
-  document.querySelectorAll('.duree-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('.duree-option').forEach(o => { o.classList.remove('selected'); o.setAttribute('aria-checked','false'); });
-      opt.classList.add('selected'); opt.setAttribute('aria-checked','true');
-      state.duree = opt.dataset.duree; state.nuits = parseInt(opt.dataset.nuits, 10);
-      if (state.selectedStart) {
-        const depart = new Date(state.selectedStart);
-        depart.setDate(depart.getDate() + state.nuits);
-        state.selectedEnd = depart;
-        buildCalendar(); updateInfo();
-      }
-      updateRecap(); updateSteps();
-      // Sync highlight
-      document.querySelectorAll('.duree-option').forEach(o => {
-        o.classList.toggle('selected', o === opt);
-        o.setAttribute('aria-checked', o === opt ? 'true' : 'false');
-      });
-    });
-  });
+  // Durée du séjour : informatif uniquement, pas interactif
 
   function renderExtras(list) {
     const container = document.getElementById('extras-list');
@@ -325,7 +301,7 @@
       if (!prenom || !email)    return showToast('Renseignez vos coordonnées.', 'error');
       if (!rgpd || !cgv)        return showToast('Acceptez nos conditions.', 'error');
 
-      const base        = PRIX_BASE[state.duree] || 180;
+      const base        = prixPourNuits(state.nuits);
       const extrasItems = [...state.extras].map(key => {
         const item = document.querySelector(`.extra-item[data-extra="${key}"]`);
         return { key, nom: item?.querySelector('.extra-name')?.textContent, prix: parseInt(item?.dataset.price || 0) };
