@@ -9,8 +9,10 @@ function checkAdmin(req, res) {
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
-function dateRange(debut, fin) {
+// excludeLastDay=true pour les réservations (départ non bloqué)
+function dateRange(debut, fin, excludeLastDay = false) {
   const dates = [], d = new Date(debut), end = new Date(fin);
+  if (excludeLastDay) end.setDate(end.getDate() - 1);
   while (d <= end) { dates.push(d.toISOString().split('T')[0]); d.setDate(d.getDate() + 1); }
   return dates;
 }

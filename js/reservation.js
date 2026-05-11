@@ -125,6 +125,12 @@
     } else if (ds < state.startStr) {
       state.startStr = ds; state.endStr = null;
     } else {
+      // Vérifier qu'aucune nuit bloquée dans la plage [start+1 … end-1]
+      const blocked = firstBlockedAfter(state.startStr);
+      if (blocked && blocked < ds) {
+        showToast('Des dates sont indisponibles dans cette période.', 'error');
+        return;
+      }
       state.endStr = ds;
       applyTarifFromSelection();
     }
@@ -132,13 +138,23 @@
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
+  function firstBlockedAfter(startStr) {
+    // Retourne la première date bloquée strictement après startStr, ou null
+    let first = null;
+    BOOKED_DATES.forEach(d => {
+      if (d > startStr && (!first || d < first)) first = d;
+    });
+    return first;
+  }
+
   function onDayHover(ds) {
     if (!state.startStr || state.endStr) return;
-    state.hoverStr = ds;
+    // Tronquer la prévisualisation à la première nuit bloquée
+    const blocked = firstBlockedAfter(state.startStr);
+    const effectiveEnd = blocked && blocked < ds ? blocked : ds;
     grid.querySelectorAll('.cal-day[data-date]').forEach(cell => {
       const d = cell.dataset.date;
-      const inRange = ds > state.startStr && d > state.startStr && d < ds;
-      cell.classList.toggle('in-range', inRange);
+      cell.classList.toggle('in-range', d > state.startStr && d < effectiveEnd);
     });
   }
 
