@@ -142,23 +142,26 @@
       cell.textContent = d;
       cell.setAttribute('role', 'gridcell');
 
-      // Lundi = maintenance : bloqué pour arrivée, autorisé pour départ
-      const mondayBlock = isMonday(ds) && !state.startStr;
       // Après le max de départ (dépasse lundi ou 6 nuits) → invalide comme départ
       const afterMaxDepart = maxDepartStr && ds > maxDepartStr;
-      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || mondayBlock || afterMaxDepart) {
+      // Lundi futur non réservé : cliquable mais "départ uniquement"
+      const isDepartureOnly = isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds) && !state.startStr;
+
+      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || afterMaxDepart) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
-        if (isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds)) {
-          cell.classList.add('maintenance');
-          cell.title = 'Maintenance — arrivée impossible le lundi';
-        }
+      } else if (isDepartureOnly) {
+        // Lundi sans arrivée sélectionnée : visible mais indique "départ uniquement"
+        cell.classList.add('departure-only');
+        cell.setAttribute('tabindex', '0');
+        cell.title = 'Départ uniquement — sélectionnez d\'abord votre arrivée';
+        cell.addEventListener('click',   () => onDayClick(ds));
+        cell.addEventListener('keydown', ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
       } else {
         cell.setAttribute('tabindex', '0');
         cell.addEventListener('click',     () => onDayClick(ds));
         cell.addEventListener('mouseover', () => onDayHover(ds));
         cell.addEventListener('keydown',   ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
-        if (isMonday(ds)) cell.classList.add('maintenance');
       }
 
       if (ds === TODAY_STR)               cell.classList.add('today');
@@ -172,6 +175,10 @@
 
   function onDayClick(ds) {
     if (!state.startStr || state.endStr) {
+      if (isMonday(ds)) {
+        showToast('Le lundi est réservé aux départs (maintenance). Choisissez d\'abord votre date d\'arrivée.', 'error');
+        return;
+      }
       state.startStr = ds; state.endStr = null;
     } else if (ds === state.startStr) {
       state.startStr = null;
