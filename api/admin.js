@@ -93,7 +93,12 @@ export default async function handler(req, res) {
       return res.status(201).json({ ok: true, count: dates.length });
     }
     if (req.method === 'DELETE') {
-      const { date, date_debut, date_fin } = req.body;
+      // Vercel ne parse pas le body des DELETE → on lit les params d'URL en priorité
+      const q = req.query;
+      const b = req.body || {};
+      const date      = q.date       || b.date;
+      const date_debut = q.date_debut || b.date_debut;
+      const date_fin   = q.date_fin   || b.date_fin;
       const dates = date_debut && date_fin ? dateRange(date_debut, date_fin) : [date];
       for (const d of dates) await supabase.from('blocked_dates').delete().eq('date', d);
       return res.status(200).json({ ok: true });

@@ -226,21 +226,23 @@
 
     async function unblockDates() {
       if (!selectedStart) { toast('Sélectionnez au moins une date', 'error'); return; }
-      const body = selectedEnd && selectedEnd !== selectedStart
-        ? { date_debut: selectedStart, date_fin: selectedEnd }
-        : { date: selectedStart };
-      const res = await fetch('/api/admin/blocked-dates', {
-        method: 'DELETE', headers: authHeaders(),
-        body: JSON.stringify(body)
+      const params = new URLSearchParams();
+      if (selectedEnd && selectedEnd !== selectedStart) {
+        params.set('date_debut', selectedStart);
+        params.set('date_fin', selectedEnd);
+      } else {
+        params.set('date', selectedStart);
+      }
+      const res = await fetch('/api/admin/blocked-dates?' + params, {
+        method: 'DELETE', headers: authHeaders()
       });
       if (res.ok) { toast('Date(s) débloquée(s) ✓'); clearSelection(); loadData(); }
       else toast('Erreur', 'error');
     }
 
     async function quickUnblock(date) {
-      const res = await fetch('/api/admin/blocked-dates', {
-        method: 'DELETE', headers: authHeaders(),
-        body: JSON.stringify({ date })
+      const res = await fetch('/api/admin/blocked-dates?date=' + encodeURIComponent(date), {
+        method: 'DELETE', headers: authHeaders()
       });
       if (res.ok) { toast('Date débloquée'); loadData(); }
       else toast('Erreur', 'error');
