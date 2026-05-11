@@ -77,6 +77,10 @@
 
   const TODAY_STR = formatDate(new Date());
 
+  function isMonday(ds) {
+    return new Date(ds + 'T12:00:00').getDay() === 1;
+  }
+
   function buildCalendar() {
     const { currentYear: year, currentMonth: month } = state;
     monthLabel.textContent = `${MONTHS_FR[month]} ${year}`;
@@ -98,14 +102,21 @@
       cell.textContent = d;
       cell.setAttribute('role', 'gridcell');
 
-      if (ds < TODAY_STR || BOOKED_DATES.has(ds)) {
+      // Lundi = maintenance : bloqué pour arrivée, autorisé pour départ
+      const mondayBlock = isMonday(ds) && !state.startStr;
+      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || mondayBlock) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
+        if (isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds)) {
+          cell.classList.add('maintenance');
+          cell.title = 'Maintenance — arrivée impossible le lundi';
+        }
       } else {
         cell.setAttribute('tabindex', '0');
         cell.addEventListener('click',     () => onDayClick(ds));
         cell.addEventListener('mouseover', () => onDayHover(ds));
         cell.addEventListener('keydown',   ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
+        if (isMonday(ds)) cell.classList.add('maintenance');
       }
 
       if (ds === TODAY_STR)               cell.classList.add('today');
