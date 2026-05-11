@@ -239,6 +239,18 @@
 
             <div id="recap-extras-container" style="margin-top:0.5rem;"></div>
 
+            <!-- Code promo -->
+            <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid rgba(154,150,145,0.1);">
+              <div style="font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--argent);margin-bottom:0.6rem;">Code promo / Carte cadeau</div>
+              <div style="display:flex;gap:0.5rem;">
+                <input type="text" id="promoInput" placeholder="Entrez votre code" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(154,150,145,0.15);color:var(--or);padding:0.5rem 0.7rem;font-size:0.8rem;font-family:inherit;letter-spacing:0.05em;text-transform:uppercase;">
+                <button id="promoBtn" type="button" style="background:rgba(154,150,145,0.1);border:1px solid rgba(154,150,145,0.2);color:var(--argent);padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">OK</button>
+              </div>
+              <div id="promoMsg" style="font-size:0.72rem;margin-top:0.4rem;min-height:1rem;"></div>
+            </div>
+
+            <div id="recap-discount-container"></div>
+
             <div class="recap-total">
               <span class="recap-total-label">Total</span>
               <span class="recap-total-amount" id="recap-total">180 €</span>

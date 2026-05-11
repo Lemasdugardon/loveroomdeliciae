@@ -227,5 +227,34 @@ export default async function handler(req, res) {
     return res.status(200).json({ url: `${process.env.SUPABASE_URL}/storage/v1/object/public/Photos/${objectName}` });
   }
 
+  /* PROMO CODES */
+  if (resource === 'promo-codes') {
+    if (req.method === 'GET') {
+      const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false });
+      return res.status(200).json(data || []);
+    }
+    if (req.method === 'POST') {
+      const { code, type, discount_type, discount_value, expires_at } = req.body;
+      if (!code || !discount_value) return res.status(400).json({ error: 'Champs manquants' });
+      const { error } = await supabase.from('promo_codes').insert({
+        code: code.toUpperCase().trim(),
+        type: type || 'promo',
+        discount_type: discount_type || 'percent',
+        discount_value: parseFloat(discount_value),
+        expires_at: expires_at || null,
+        used: false,
+        active: true,
+      });
+      if (error) return res.status(400).json({ error: error.message });
+      return res.status(201).json({ ok: true });
+    }
+    if (req.method === 'DELETE') {
+      const { id } = req.body;
+      await supabase.from('promo_codes').delete().eq('id', id);
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(405).end();
+  }
+
   res.status(404).json({ error: 'Route inconnue' });
 }

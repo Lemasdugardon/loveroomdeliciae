@@ -50,9 +50,15 @@
   const recapDepart          = document.getElementById('recap-depart');
   const recapDuree           = document.getElementById('recap-duree');
   const recapPrixBase        = document.getElementById('recap-prix-base');
-  const recapExtrasContainer = document.getElementById('recap-extras-container');
-  const recapTotal           = document.getElementById('recap-total');
-  const recapBtn             = document.getElementById('recapBtn');
+  const recapExtrasContainer   = document.getElementById('recap-extras-container');
+  const recapDiscountContainer = document.getElementById('recap-discount-container');
+  const recapTotal             = document.getElementById('recap-total');
+  const recapBtn               = document.getElementById('recapBtn');
+  const promoInput             = document.getElementById('promoInput');
+  const promoBtn               = document.getElementById('promoBtn');
+  const promoMsg               = document.getElementById('promoMsg');
+
+  let appliedPromo = null;
   const toast                = document.getElementById('toast');
 
   if (!grid) return;
@@ -190,6 +196,15 @@
     });
   }
 
+  function calcDiscount(base, extrasTotal) {
+    if (!appliedPromo) return 0;
+    const subtotal = base + extrasTotal;
+    if (appliedPromo.discount_type === 'percent') {
+      return Math.round(subtotal * appliedPromo.discount_value / 100);
+    }
+    return Math.min(appliedPromo.discount_value, subtotal);
+  }
+
   function updateRecap() {
     recapArrivee.textContent = state.selectedStart ? formatDateFR(state.selectedStart) : '—';
     recapDepart.textContent  = state.selectedEnd   ? formatDateFR(state.selectedEnd)   : '—';
@@ -207,7 +222,51 @@
       row.innerHTML = `<span class="recap-label" style="font-size:0.68rem;opacity:0.8">${item.querySelector('.extra-name').textContent}</span><span class="recap-value">+${price} €</span>`;
       recapExtrasContainer.appendChild(row);
     });
-    recapTotal.textContent = `${base + extrasTotal} €`;
+    const discount = calcDiscount(base, extrasTotal);
+    if (recapDiscountContainer) {
+      recapDiscountContainer.innerHTML = discount > 0 ? `
+        <div class="recap-ligne" style="color:#7ac498;">
+          <span class="recap-label" style="font-size:0.68rem;">${appliedPromo.type === 'gift_card' ? 'Carte cadeau' : 'Code promo'} (${appliedPromo.code})</span>
+          <span class="recap-value">-${discount} €</span>
+        </div>` : '';
+    }
+    recapTotal.textContent = `${Math.max(0, base + extrasTotal - discount)} €`;
+  }
+
+  if (promoBtn) {
+    promoBtn.addEventListener('click', async () => {
+      const code = promoInput?.value.trim();
+      if (!code) return;
+      promoBtn.disabled = true;
+      promoMsg.style.color = 'var(--argent)';
+      promoMsg.textContent = 'Vérification...';
+      try {
+        const res = await fetch('/api/promo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          promoMsg.style.color = '#e05050';
+          promoMsg.textContent = data.error || 'Code invalide.';
+          appliedPromo = null;
+        } else {
+          appliedPromo = data;
+          promoMsg.style.color = '#7ac498';
+          const label = data.discount_type === 'percent' ? `-${data.discount_value}%` : `-${data.discount_value} €`;
+          promoMsg.textContent = `Code appliqué : ${label}`;
+          promoInput.disabled = true;
+          promoBtn.textContent = '✓';
+        }
+        updateRecap();
+      } catch {
+        promoMsg.style.color = '#e05050';
+        promoMsg.textContent = 'Erreur réseau.';
+      }
+      promoBtn.disabled = false;
+    });
+    promoInput?.addEventListener('keydown', e => { if (e.key === 'Enter') promoBtn.click(); });
   }
 
   function updateSteps() {
@@ -234,6 +293,7 @@
         return { key, nom: item?.querySelector('.extra-name')?.textContent, prix: parseInt(item?.dataset.price || 0) };
       });
       const extrasTotal = extrasItems.reduce((s, e) => s + e.prix, 0);
+      const discount    = calcDiscount(base, extrasTotal);
 
       recapBtn.disabled = true;
       recapBtn.textContent = 'Envoi en cours...';
@@ -248,7 +308,10 @@
             date_arrivee: formatDate(state.selectedStart),
             date_depart:  state.selectedEnd ? formatDate(state.selectedEnd) : formatDate(state.selectedStart),
             duree_type: state.duree, extras: extrasItems,
-            montant_base: base, montant_extras: extrasTotal, montant_total: base + extrasTotal,
+            montant_base: base, montant_extras: extrasTotal,
+            montant_remise: discount,
+            montant_total: Math.max(0, base + extrasTotal - discount),
+            code_promo: appliedPromo?.code || null,
             occasion: document.getElementById('occasion')?.value,
             message:  document.getElementById('message')?.value.trim(),
           })
