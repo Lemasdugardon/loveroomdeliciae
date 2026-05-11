@@ -83,11 +83,14 @@ export default async function handler(req, res) {
       };
       for (const t of tarifs || []) {
         const meta = TARIF_META[t.type] || {};
-        const { error } = await supabase.from('tarifs').upsert(
-          { type: t.type, prix: t.prix, ...meta },
-          { onConflict: 'type' }
-        );
-        if (error) return res.status(400).json({ error: error.message, type: t.type });
+        const { data: existing } = await supabase.from('tarifs').select('id').eq('type', t.type).maybeSingle();
+        if (existing) {
+          const { error } = await supabase.from('tarifs').update({ prix: t.prix }).eq('type', t.type);
+          if (error) return res.status(400).json({ error: error.message, type: t.type });
+        } else {
+          const { error } = await supabase.from('tarifs').insert({ type: t.type, prix: t.prix, ...meta });
+          if (error) return res.status(400).json({ error: error.message, type: t.type });
+        }
       }
       for (const e of extras || []) await supabase.from('extras').update({ prix: e.prix, actif: e.actif }).eq('key', e.key);
       return res.status(200).json({ ok: true });
