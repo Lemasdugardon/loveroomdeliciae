@@ -147,7 +147,16 @@
       // Lundi futur non réservé : cliquable mais "départ uniquement"
       const isDepartureOnly = isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds) && !state.startStr;
 
-      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || afterMaxDepart) {
+      // Un jour bloqué peut quand même être un départ valide :
+      // arrivée sélectionnée + aucune nuit bloquée entre arrivée et ce jour
+      // (quelqu'un arrive ce jour-là à 17h, on part ce matin à 9h = OK)
+      const firstBlocked = state.startStr && !state.endStr ? firstBlockedAfter(state.startStr) : null;
+      const isValidDeparture = state.startStr && !state.endStr
+        && ds > state.startStr
+        && BOOKED_DATES.has(ds)
+        && (!firstBlocked || firstBlocked >= ds);
+
+      if (ds < TODAY_STR || (BOOKED_DATES.has(ds) && !isValidDeparture) || afterMaxDepart) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
       } else if (isDepartureOnly) {
