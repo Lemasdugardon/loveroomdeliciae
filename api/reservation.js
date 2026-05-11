@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
   let { data, error } = await supabase
     .from('reservations')
-    .insert({ ...basePayload, heure_arrivee: heure_arrivee || '17:00', heure_depart: heure_depart || '10:00' })
+    .insert({ ...basePayload, heure_arrivee: heure_arrivee || '17:00', heure_depart: heure_depart || '09:00' })
     .select()
     .single();
 
