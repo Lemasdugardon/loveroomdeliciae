@@ -422,10 +422,10 @@
       const discount    = calcDiscount(base, extrasTotal);
 
       recapBtn.disabled = true;
-      recapBtn.textContent = 'Envoi en cours...';
+      recapBtn.textContent = 'Redirection vers le paiement…';
 
       try {
-        const res = await fetch('/api/reservation', {
+        const res = await fetch('/api/stripe-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -434,7 +434,7 @@
             date_arrivee:  state.startStr,
             date_depart:   state.endStr || state.startStr,
             heure_arrivee: document.getElementById('heure_arrivee')?.value || '17:00',
-            heure_depart:  document.getElementById('heure_depart')?.value  || '10:00',
+            heure_depart:  document.getElementById('heure_depart')?.value  || '09:00',
             duree_type: state.nuits === 1 ? 'nuit' : state.nuits === 2 ? 'weekend' : state.nuits === 3 ? 'long' : state.nuits <= 6 ? 'nuit_longue' : 'semaine',
             extras: extrasItems,
             montant_base: base, montant_extras: extrasTotal,
@@ -445,12 +445,11 @@
             message:  document.getElementById('message')?.value.trim(),
           })
         });
-        if (res.ok) {
-          showToast('Demande envoyée ! Nous vous confirmons sous 24h.', 'success');
-          recapBtn.textContent = 'Demande envoyée ✓';
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.url) {
+          window.location.href = data.url;
         } else {
-          const errData = await res.json().catch(() => ({}));
-          showToast(`Erreur ${res.status} : ${errData.error || errData.detail || 'inconnue'}`, 'error');
+          showToast(`Erreur ${res.status} : ${data.error || 'inconnue'}`, 'error');
           recapBtn.disabled = false;
           recapBtn.textContent = 'Procéder au paiement';
         }
