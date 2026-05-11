@@ -344,14 +344,17 @@
 
   <script src="js/main.js"></script>
   <script>
-    // Formulaire contact
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const toast = document.getElementById('toast');
-      const prenom = document.getElementById('c-prenom').value.trim();
-      const email = document.getElementById('c-email').value.trim();
+      const btn = this.querySelector('button[type="submit"]');
+
+      const prenom  = document.getElementById('c-prenom').value.trim();
+      const nom     = document.getElementById('c-nom').value.trim();
+      const email   = document.getElementById('c-email').value.trim();
+      const sujet   = document.getElementById('c-sujet').value;
       const message = document.getElementById('c-message').value.trim();
-      const rgpd = document.getElementById('c-rgpd').checked;
+      const rgpd    = document.getElementById('c-rgpd').checked;
 
       if (!prenom || !email || !message) {
         toast.textContent = 'Veuillez remplir tous les champs obligatoires.';
@@ -366,10 +369,31 @@
         return;
       }
 
-      toast.textContent = 'Votre message a bien été envoyé. Nous vous répondrons sous 24h.';
-      toast.className = 'toast success show';
-      setTimeout(() => toast.classList.remove('show'), 5000);
-      this.reset();
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Envoi en cours...';
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prenom, nom, email, sujet, message })
+        });
+        if (res.ok) {
+          toast.textContent = 'Votre message a bien été envoyé. Nous vous répondrons sous 24h.';
+          toast.className = 'toast success show';
+          setTimeout(() => toast.classList.remove('show'), 5000);
+          this.reset();
+          btn.querySelector('span').textContent = 'Message envoyé ✓';
+        } else {
+          throw new Error();
+        }
+      } catch {
+        toast.textContent = "Erreur lors de l'envoi. Réessayez.";
+        toast.className = 'toast error show';
+        setTimeout(() => toast.classList.remove('show'), 4000);
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Envoyer le message';
+      }
     });
   </script>
 </body>
