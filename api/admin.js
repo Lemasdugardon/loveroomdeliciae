@@ -75,8 +75,19 @@ export default async function handler(req, res) {
     }
     if (req.method === 'PATCH') {
       const { tarifs, extras } = req.body;
+      const TARIF_META = {
+        nuit:        { label: '1 nuitée',       nuits: 1 },
+        weekend:     { label: '2 nuitées',      nuits: 2 },
+        long:        { label: '3 nuitées',      nuits: 3 },
+        nuit_longue: { label: '4 à 6 nuitées',  nuits: 4 },
+      };
       for (const t of tarifs || []) {
-        await supabase.from('tarifs').upsert({ type: t.type, prix: t.prix }, { onConflict: 'type' });
+        const meta = TARIF_META[t.type] || {};
+        const { error } = await supabase.from('tarifs').upsert(
+          { type: t.type, prix: t.prix, ...meta },
+          { onConflict: 'type' }
+        );
+        if (error) return res.status(400).json({ error: error.message, type: t.type });
       }
       for (const e of extras || []) await supabase.from('extras').update({ prix: e.prix, actif: e.actif }).eq('key', e.key);
       return res.status(200).json({ ok: true });
