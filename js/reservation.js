@@ -90,14 +90,18 @@
       grid.appendChild(e);
     }
 
+    const startTs  = state.selectedStart ? state.selectedStart.getTime() : null;
+    const endTs    = state.selectedEnd   ? state.selectedEnd.getTime()   : null;
+    const hoverTs  = (state.selectedStart && !state.selectedEnd && state.hoverDate && state.hoverDate > state.selectedStart)
+                     ? state.hoverDate.getTime() : null;
+    const rangeEnd = endTs || hoverTs;
+
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const date = new Date(year, month, d); date.setHours(0,0,0,0);
-      const dateStr  = formatDate(date);
-      const isPast   = date < TODAY;
+      const ts      = date.getTime();
+      const dateStr = formatDate(date);
+      const isPast   = ts < TODAY.getTime();
       const isBooked = BOOKED_DATES.has(dateStr);
-      const isToday  = date.getTime() === TODAY.getTime();
-      const isStart  = state.selectedStart && formatDate(state.selectedStart) === dateStr;
-      const isEnd    = state.selectedEnd   && formatDate(state.selectedEnd)   === dateStr;
 
       const cell = document.createElement('div');
       cell.className = 'cal-day';
@@ -115,32 +119,45 @@
         cell.addEventListener('keydown',   ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onDayClick(date); } });
       }
 
-      if (isToday) cell.classList.add('today');
-      if (isStart) cell.classList.add('range-start', 'selected');
-      if (isEnd)   cell.classList.add('range-end',   'selected');
-      if ((state.selectedStart && state.selectedEnd && date > state.selectedStart && date < state.selectedEnd) ||
-          (state.selectedStart && !state.selectedEnd && state.hoverDate && date > Math.min(state.selectedStart, state.hoverDate) && date < Math.max(state.selectedStart, state.hoverDate))) {
-        cell.classList.add('in-range');
-      }
+      if (ts === TODAY.getTime())      cell.classList.add('today');
+      if (startTs && ts === startTs)   cell.classList.add('range-start', 'selected');
+      if (endTs   && ts === endTs)     cell.classList.add('range-end',   'selected');
+      if (startTs && rangeEnd && ts > startTs && ts < rangeEnd) cell.classList.add('in-range');
 
       grid.appendChild(cell);
     }
   }
 
   function onDayClick(date) {
-    if (!state.selectedStart || (state.selectedStart && state.selectedEnd)) {
-      state.selectedStart = date; state.selectedEnd = null;
+    const ts = date.getTime();
+    const startTs = state.selectedStart ? state.selectedStart.getTime() : null;
+
+    if (!startTs || state.selectedEnd) {
+      // Pas de début, ou sélection déjà complète → recommencer
+      state.selectedStart = date;
+      state.selectedEnd   = null;
+    } else if (ts === startTs) {
+      // Clic sur la même date → annuler
+      state.selectedStart = null;
+    } else if (ts < startTs) {
+      // Clic avant le début → nouveau début
+      state.selectedStart = date;
+      state.selectedEnd   = null;
     } else {
-      if (date <= state.selectedStart) { state.selectedStart = date; state.selectedEnd = null; }
-      else { state.selectedEnd = date; }
+      // Clic après le début → fixer la fin
+      state.selectedEnd = date;
+      applyTarifFromSelection();
     }
+
     state.hoverDate = null;
-    if (state.selectedStart && state.selectedEnd) applyTarifFromSelection();
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
   function onDayHover(date) {
-    if (state.selectedStart && !state.selectedEnd) { state.hoverDate = date; buildCalendar(); }
+    if (state.selectedStart && !state.selectedEnd) {
+      state.hoverDate = date;
+      buildCalendar();
+    }
   }
 
   function applyTarifFromSelection() {
