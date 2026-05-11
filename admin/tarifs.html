@@ -98,17 +98,37 @@
       renderExtras();
     }
 
+    const TARIF_DISPLAY = {
+      nuit:        { label: '1 nuitée',      suffix: '€',     help: 'Prix total pour 1 nuit' },
+      weekend:     { label: '2 nuitées',     suffix: '€/nuit', help: 'Ex : 332,50 × 2 = 665 €' },
+      long:        { label: '3 nuitées',     suffix: '€/nuit', help: 'Ex : 315 × 3 = 945 €' },
+      nuit_longue: { label: '4 à 6 nuitées', suffix: '€/nuit', help: 'Multiplié par le nb de nuits' },
+    };
+
     function renderTarifs() {
-      document.getElementById('tarifsGrid').innerHTML = tarifs.map(t => `
+      // Ensure nuit_longue is always shown even if absent from DB
+      const types = ['nuit', 'weekend', 'long', 'nuit_longue'];
+      const byType = {};
+      tarifs.forEach(t => { byType[t.type] = t; });
+
+      document.getElementById('tarifsGrid').innerHTML = types.map(type => {
+        const t = byType[type] || { type, prix: type === 'nuit' ? 350 : type === 'weekend' ? 332.5 : type === 'long' ? 315 : 300 };
+        const meta = TARIF_DISPLAY[type];
+        return `
         <div class="tarif-card">
-          <div class="tarif-label">${t.label}</div>
+          <div class="tarif-label">${meta.label}</div>
           <div class="tarif-input">
-            <input type="number" id="tarif-${t.type}" value="${t.prix}" min="0" step="10">
-            <span>€</span>
+            <input type="number" id="tarif-${type}" value="${t.prix}" min="0" step="0.5">
+            <span>${meta.suffix}</span>
           </div>
-          <div style="font-size:0.65rem;color:var(--argent);margin-top:0.5rem">${t.nuits} nuit${t.nuits > 1 ? 's' : ''}</div>
-        </div>
-      `).join('');
+          <div style="font-size:0.65rem;color:var(--argent);margin-top:0.5rem">${meta.help}</div>
+        </div>`;
+      }).join('') + `
+        <div class="tarif-card" style="opacity:0.5">
+          <div class="tarif-label">7 nuitées +</div>
+          <div style="font-size:0.85rem;color:var(--argent);margin-top:0.5rem">Sur demande</div>
+          <div style="font-size:0.65rem;color:var(--argent);margin-top:0.5rem">Contactez-nous</div>
+        </div>`;
     }
 
     function renderExtras() {
@@ -141,10 +161,11 @@
     }
 
     async function saveTarifs() {
-      const updatedTarifs = tarifs.map(t => ({
-        type: t.type,
-        prix: parseInt(document.getElementById(`tarif-${t.type}`).value) || t.prix
-      }));
+      const types = ['nuit', 'weekend', 'long', 'nuit_longue'];
+      const updatedTarifs = types.map(type => {
+        const input = document.getElementById(`tarif-${type}`);
+        return { type, prix: parseFloat(input?.value) || 0 };
+      });
       const res = await fetch('/api/admin/tarifs', {
         method: 'PATCH',
         headers: authHeaders(),

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  let PRIX_BASE   = { nuit: 180, weekend: 320, long: 450, semaine: 980 };
+  let PRIX_BASE   = { nuit: 350, weekend: 332.5, long: 315, nuit_longue: 300, semaine: 0 };
   let BOOKED_DATES = new Set();
 
   async function loadData() {
@@ -22,7 +22,16 @@
 
       tarifs.forEach(t => {
         const opt = document.querySelector(`.duree-option[data-duree="${t.type}"]`);
-        if (opt) opt.querySelector('.duree-option-price').textContent = `à partir de ${t.prix} €`;
+        if (!opt) return;
+        const priceEl = opt.querySelector('.duree-option-price');
+        if (!priceEl) return;
+        if (t.type === 'semaine') return;
+        const prixFR = t.prix.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        if (t.type === 'nuit') {
+          priceEl.textContent = `à partir de ${prixFR} €`;
+        } else {
+          priceEl.textContent = `à partir de ${prixFR} €/nuit`;
+        }
       });
 
       renderExtras(extras.filter(e => e.actif));
@@ -240,12 +249,11 @@
   }
 
   function prixPourNuits(nuits) {
-    if (nuits <= 1)                    return PRIX_BASE.nuit        || 180;
-    if (nuits === 2)                   return PRIX_BASE.weekend     || 320;
-    if (nuits === 3)                   return PRIX_BASE.long        || 450;
-    if (nuits >= 4 && nuits <= 6)      return (PRIX_BASE.nuit_longue || 300) * nuits;
-    if (nuits >= 7)                    return PRIX_BASE.semaine     || 980;
-    return Math.round((PRIX_BASE.nuit || 180) * nuits);
+    if (nuits <= 1)               return PRIX_BASE.nuit              || 350;
+    if (nuits === 2)              return Math.round((PRIX_BASE.weekend     || 332.5) * 2);
+    if (nuits === 3)              return Math.round((PRIX_BASE.long        || 315)   * 3);
+    if (nuits >= 4 && nuits <= 6) return Math.round((PRIX_BASE.nuit_longue || 300)   * nuits);
+    return 0;
   }
 
   function calcDiscount(base, extrasTotal) {

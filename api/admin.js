@@ -75,7 +75,9 @@ export default async function handler(req, res) {
     }
     if (req.method === 'PATCH') {
       const { tarifs, extras } = req.body;
-      for (const t of tarifs || []) await supabase.from('tarifs').update({ prix: t.prix }).eq('type', t.type);
+      for (const t of tarifs || []) {
+        await supabase.from('tarifs').upsert({ type: t.type, prix: t.prix }, { onConflict: 'type' });
+      }
       for (const e of extras || []) await supabase.from('extras').update({ prix: e.prix, actif: e.actif }).eq('key', e.key);
       return res.status(200).json({ ok: true });
     }
