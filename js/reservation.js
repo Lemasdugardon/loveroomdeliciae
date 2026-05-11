@@ -128,19 +128,16 @@
   }
 
   function onDayClick(date) {
-    if (!state.selectedStart || (state.selectedStart && state.selectedEnd)) {
-      state.selectedStart = date; state.selectedEnd = null;
-    } else {
-      if (date < state.selectedStart) { state.selectedEnd = state.selectedStart; state.selectedStart = date; }
-      else if (date.getTime() === state.selectedStart.getTime()) { state.selectedStart = null; }
-      else { state.selectedEnd = date; }
-    }
+    state.selectedStart = date;
+    const depart = new Date(date);
+    depart.setDate(depart.getDate() + state.nuits);
+    state.selectedEnd = depart;
     state.hoverDate = null;
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
   function onDayHover(date) {
-    if (state.selectedStart && !state.selectedEnd) { state.hoverDate = date; buildCalendar(); }
+    state.hoverDate = date; buildCalendar();
   }
 
   grid.addEventListener('mouseleave', () => {
@@ -164,6 +161,12 @@
       document.querySelectorAll('.duree-option').forEach(o => { o.classList.remove('selected'); o.setAttribute('aria-checked','false'); });
       opt.classList.add('selected'); opt.setAttribute('aria-checked','true');
       state.duree = opt.dataset.duree; state.nuits = parseInt(opt.dataset.nuits, 10);
+      if (state.selectedStart) {
+        const depart = new Date(state.selectedStart);
+        depart.setDate(depart.getDate() + state.nuits);
+        state.selectedEnd = depart;
+        buildCalendar(); updateInfo();
+      }
       updateRecap(); updateSteps();
     });
   });
