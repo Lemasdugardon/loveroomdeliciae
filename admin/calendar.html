@@ -237,15 +237,23 @@
         method: 'DELETE', headers: authHeaders()
       });
       if (res.ok) { toast('Date(s) débloquée(s) ✓'); clearSelection(); loadData(); }
-      else toast('Erreur', 'error');
+      else {
+        const body = await res.json().catch(() => ({}));
+        toast('Erreur : ' + (body.detail || body.error || res.status), 'error');
+        console.error('[unblock range]', res.status, body);
+      }
     }
 
     async function quickUnblock(date) {
       const res = await fetch('/api/admin/blocked-dates?date=' + encodeURIComponent(date), {
         method: 'DELETE', headers: authHeaders()
       });
-      if (res.ok) { toast('Date débloquée'); loadData(); }
-      else toast('Erreur', 'error');
+      if (res.ok) { toast('Date débloquée ✓'); loadData(); }
+      else {
+        const body = await res.json().catch(() => ({}));
+        toast('Erreur : ' + (body.detail || body.error || res.status), 'error');
+        console.error('[unblock]', res.status, body);
+      }
     }
 
     function prevMonth() { month--; if (month < 0) { month = 11; year--; } render(); }

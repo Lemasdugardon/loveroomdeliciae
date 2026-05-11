@@ -156,11 +156,26 @@ export default async function handler(req, res) {
       return res.status(200).json(textes);
     }
     if (req.method === 'PATCH') {
-      for (const [cle, valeur] of Object.entries(req.body)) {
-        if (!cle.startsWith('texte_')) continue;
-        const { data } = await supabase.from('settings').select('cle').eq('cle', cle).single();
-        if (data) await supabase.from('settings').update({ valeur }).eq('cle', cle);
-        else       await supabase.from('settings').insert({ cle, valeur });
+      const rows = Object.entries(req.body)
+        .filter(([cle]) => cle.startsWith('texte_'))
+        .map(([cle, valeur]) => ({ cle, valeur: String(valeur) }));
+      if (!rows.length) return res.status(200).json({ ok: true });
+      const upsertRes = await fetch(
+        `${process.env.SUPABASE_URL}/rest/v1/settings`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify(rows),
+        }
+      );
+      if (!upsertRes.ok) {
+        const txt = await upsertRes.text().catch(() => 'inconnu');
+        return res.status(500).json({ error: 'Erreur sauvegarde textes', detail: txt });
       }
       return res.status(200).json({ ok: true });
     }
