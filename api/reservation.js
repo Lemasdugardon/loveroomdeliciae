@@ -7,8 +7,8 @@ export default async function handler(req, res) {
   const {
     prenom, nom, email, telephone,
     date_arrivee, date_depart, heure_arrivee, heure_depart, duree_type,
-    extras, montant_base, montant_extras, montant_total,
-    occasion, message
+    extras, montant_base, montant_extras, montant_remise, montant_total,
+    code_promo, occasion, message
   } = req.body;
 
   if (!prenom || !nom || !email || !date_arrivee || !date_depart) {
@@ -20,7 +20,11 @@ export default async function handler(req, res) {
     date_arrivee, date_depart,
     duree_type,
     extras: extras || [],
-    montant_base, montant_extras: montant_extras || 0, montant_total,
+    montant_base:   montant_base   || 0,
+    montant_extras: montant_extras || 0,
+    montant_remise: montant_remise || 0,
+    montant_total:  montant_total  || 0,
+    code_promo:     code_promo     || null,
     occasion, message,
     statut: 'pending'
   };
@@ -36,7 +40,7 @@ export default async function handler(req, res) {
     ({ data, error } = await supabase.from('reservations').insert(basePayload).select().single());
   }
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) return res.status(500).json({ error: error.message, detail: error.details || error.hint || '' });
 
   res.status(201).json({ id: data.id, message: 'Réservation enregistrée' });
 }
