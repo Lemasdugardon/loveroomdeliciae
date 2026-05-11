@@ -125,7 +125,11 @@
     } else if (ds < state.startStr) {
       state.startStr = ds; state.endStr = null;
     } else {
-      // Vérifier qu'aucune nuit bloquée dans la plage [start+1 … end-1]
+      const nuits = daysBetween(state.startStr, ds);
+      if (nuits > 6) {
+        showToast('Séjour de 7 nuits ou plus : contactez-nous pour une demande exceptionnelle.', 'error');
+        return;
+      }
       const blocked = firstBlockedAfter(state.startStr);
       if (blocked && blocked < ds) {
         showToast('Des dates sont indisponibles dans cette période.', 'error');
@@ -147,14 +151,19 @@
     return first;
   }
 
+  function addDays(dateStr, n) {
+    const d = new Date(dateStr); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0];
+  }
+
   function onDayHover(ds) {
     if (!state.startStr || state.endStr) return;
-    // Tronquer la prévisualisation à la première nuit bloquée
-    const blocked = firstBlockedAfter(state.startStr);
-    const effectiveEnd = blocked && blocked < ds ? blocked : ds;
+    const maxEnd   = addDays(state.startStr, 6);
+    const blocked  = firstBlockedAfter(state.startStr);
+    const cap      = blocked && blocked < maxEnd ? blocked : maxEnd;
+    const effective = ds > cap ? cap : ds;
     grid.querySelectorAll('.cal-day[data-date]').forEach(cell => {
       const d = cell.dataset.date;
-      cell.classList.toggle('in-range', d > state.startStr && d < effectiveEnd);
+      cell.classList.toggle('in-range', d > state.startStr && d < effective);
     });
   }
 
