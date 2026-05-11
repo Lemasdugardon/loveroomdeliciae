@@ -165,7 +165,7 @@
   function applyTarifFromSelection() {
     const nuits = daysBetween(state.startStr, state.endStr);
     state.nuits = nuits;
-    const bestType = nuits === 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : nuits >= 7 ? 'semaine' : null;
+    const bestType = nuits === 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : (nuits >= 4 && nuits <= 6) ? 'nuit_longue' : nuits >= 7 ? 'semaine' : null;
     document.querySelectorAll('.duree-option').forEach(o => {
       o.classList.toggle('selected', !!bestType && o.dataset.duree === bestType);
     });
@@ -220,13 +220,12 @@
   }
 
   function prixPourNuits(nuits) {
-    if (nuits <= 1)  return PRIX_BASE.nuit     || 180;
-    if (nuits === 2) return PRIX_BASE.weekend  || 320;
-    if (nuits === 3) return PRIX_BASE.long     || 450;
-    if (nuits >= 7)  return PRIX_BASE.semaine  || 980;
-    // 4, 5, 6 nuits : interpolation au prorata nuitée
-    const tauxNuit = (PRIX_BASE.nuit || 180);
-    return Math.round(tauxNuit * nuits);
+    if (nuits <= 1)                    return PRIX_BASE.nuit        || 180;
+    if (nuits === 2)                   return PRIX_BASE.weekend     || 320;
+    if (nuits === 3)                   return PRIX_BASE.long        || 450;
+    if (nuits >= 4 && nuits <= 6)      return (PRIX_BASE.nuit_longue || 300) * nuits;
+    if (nuits >= 7)                    return PRIX_BASE.semaine     || 980;
+    return Math.round((PRIX_BASE.nuit || 180) * nuits);
   }
 
   function calcDiscount(base, extrasTotal) {
