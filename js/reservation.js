@@ -25,18 +25,11 @@
         if (opt) opt.querySelector('.duree-option-price').textContent = `à partir de ${t.prix} €`;
       });
 
-      extras.forEach(e => {
-        const item = document.querySelector(`.extra-item[data-extra="${e.key}"]`);
-        if (!item) return;
-        item.dataset.price = e.prix;
-        const priceEl = item.querySelector('.extra-price');
-        if (priceEl) priceEl.textContent = `+${e.prix} €`;
-        if (!e.actif) item.style.display = 'none';
-      });
-
+      renderExtras(extras.filter(e => e.actif));
       buildCalendar();
       updateRecap();
     } catch (e) {
+      renderExtras([]);
       buildCalendar();
     }
   }
@@ -169,14 +162,33 @@
     });
   });
 
-  document.querySelectorAll('.extra-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const key = item.dataset.extra;
-      if (state.extras.has(key)) { state.extras.delete(key); item.classList.remove('selected'); item.setAttribute('aria-checked','false'); }
-      else { state.extras.add(key); item.classList.add('selected'); item.setAttribute('aria-checked','true'); }
-      updateRecap();
+  function renderExtras(list) {
+    const container = document.getElementById('extras-list');
+    if (!container) return;
+    if (!list || !list.length) {
+      container.innerHTML = '<div style="color:rgba(154,150,145,0.4);font-size:0.8rem;padding:1rem 0;">Aucune option disponible pour le moment.</div>';
+      return;
+    }
+    container.innerHTML = list.map(e => `
+      <div class="extra-item" data-extra="${e.key}" data-price="${e.prix}" role="checkbox" aria-checked="false" tabindex="0">
+        <div class="extra-left">
+          <div class="extra-check" aria-hidden="true">
+            <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg>
+          </div>
+          <span class="extra-name">${e.nom}</span>
+        </div>
+        <span class="extra-price">+${e.prix} €</span>
+      </div>
+    `).join('');
+    container.querySelectorAll('.extra-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const key = item.dataset.extra;
+        if (state.extras.has(key)) { state.extras.delete(key); item.classList.remove('selected'); item.setAttribute('aria-checked','false'); }
+        else { state.extras.add(key); item.classList.add('selected'); item.setAttribute('aria-checked','true'); }
+        updateRecap();
+      });
     });
-  });
+  }
 
   function updateRecap() {
     recapArrivee.textContent = state.selectedStart ? formatDateFR(state.selectedStart) : '—';
