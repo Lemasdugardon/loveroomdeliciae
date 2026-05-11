@@ -37,8 +37,8 @@
   const state = {
     currentMonth: new Date().getMonth(),
     currentYear:  new Date().getFullYear(),
-    selectedStart: null, selectedEnd: null, hoverDate: null,
-    duree: 'nuit', nuits: 1, extras: new Set(),
+    startStr: null, endStr: null, hoverStr: null,
+    nuits: 1, extras: new Set(),
   };
 
   const grid       = document.getElementById('calendarGrid');
@@ -75,6 +75,8 @@
     return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
   }
 
+  const TODAY_STR = formatDate(new Date());
+
   function buildCalendar() {
     const { currentYear: year, currentMonth: month } = state;
     monthLabel.textContent = `${MONTHS_FR[month]} ${year}`;
@@ -84,91 +86,67 @@
     grid.querySelectorAll('.cal-day').forEach(el => el.remove());
 
     for (let i = 0; i < startDow; i++) {
-      const e = document.createElement('div');
-      e.className = 'cal-day empty';
-      e.setAttribute('aria-hidden', 'true');
-      grid.appendChild(e);
+      const e = document.createElement('div'); e.className = 'cal-day empty'; e.setAttribute('aria-hidden','true'); grid.appendChild(e);
     }
 
-    const startTs  = state.selectedStart ? state.selectedStart.getTime() : null;
-    const endTs    = state.selectedEnd   ? state.selectedEnd.getTime()   : null;
-    const hoverTs  = (state.selectedStart && !state.selectedEnd && state.hoverDate && state.hoverDate > state.selectedStart)
-                     ? state.hoverDate.getTime() : null;
-    const rangeEnd = endTs || hoverTs;
+    const rangeEnd = state.endStr || (state.startStr && state.hoverStr > state.startStr ? state.hoverStr : null);
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
-      const date = new Date(year, month, d); date.setHours(0,0,0,0);
-      const ts      = date.getTime();
-      const dateStr = formatDate(date);
-      const isPast   = ts < TODAY.getTime();
-      const isBooked = BOOKED_DATES.has(dateStr);
-
+      const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const cell = document.createElement('div');
       cell.className = 'cal-day';
       cell.textContent = d;
-      cell.dataset.date = dateStr;
       cell.setAttribute('role', 'gridcell');
 
-      if (isPast || isBooked) {
+      if (ds < TODAY_STR || BOOKED_DATES.has(ds)) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
       } else {
         cell.setAttribute('tabindex', '0');
-        cell.addEventListener('click',     () => onDayClick(date));
-        cell.addEventListener('mouseover', () => onDayHover(date));
-        cell.addEventListener('keydown',   ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onDayClick(date); } });
+        cell.addEventListener('click',     () => onDayClick(ds));
+        cell.addEventListener('mouseover', () => onDayHover(ds));
+        cell.addEventListener('keydown',   ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
       }
 
-      if (ts === TODAY.getTime())      cell.classList.add('today');
-      if (startTs && ts === startTs)   cell.classList.add('range-start', 'selected');
-      if (endTs   && ts === endTs)     cell.classList.add('range-end',   'selected');
-      if (startTs && rangeEnd && ts > startTs && ts < rangeEnd) cell.classList.add('in-range');
+      if (ds === TODAY_STR)               cell.classList.add('today');
+      if (ds === state.startStr)          cell.classList.add('range-start','selected');
+      if (ds === state.endStr)            cell.classList.add('range-end','selected');
+      if (state.startStr && rangeEnd && ds > state.startStr && ds < rangeEnd) cell.classList.add('in-range');
 
       grid.appendChild(cell);
     }
   }
 
-  function onDayClick(date) {
-    const ts = date.getTime();
-    const startTs = state.selectedStart ? state.selectedStart.getTime() : null;
-
-    if (!startTs || state.selectedEnd) {
-      // Pas de début, ou sélection déjà complète → recommencer
-      state.selectedStart = date;
-      state.selectedEnd   = null;
-    } else if (ts === startTs) {
-      // Clic sur la même date → annuler
-      state.selectedStart = null;
-    } else if (ts < startTs) {
-      // Clic avant le début → nouveau début
-      state.selectedStart = date;
-      state.selectedEnd   = null;
+  function onDayClick(ds) {
+    if (!state.startStr || state.endStr) {
+      state.startStr = ds; state.endStr = null;
+    } else if (ds === state.startStr) {
+      state.startStr = null;
+    } else if (ds < state.startStr) {
+      state.startStr = ds; state.endStr = null;
     } else {
-      // Clic après le début → fixer la fin
-      state.selectedEnd = date;
+      state.endStr = ds;
       applyTarifFromSelection();
     }
-
-    state.hoverDate = null;
+    state.hoverStr = null;
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
-  function onDayHover(date) {
-    if (state.selectedStart && !state.selectedEnd) {
-      state.hoverDate = date;
-      buildCalendar();
-    }
+  function onDayHover(ds) {
+    if (state.startStr && !state.endStr) { state.hoverStr = ds; buildCalendar(); }
+  }
+
+  function daysBetween(s1, s2) {
+    return Math.round((new Date(s2) - new Date(s1)) / 86400000);
   }
 
   function applyTarifFromSelection() {
-    const nuits = Math.round((state.selectedEnd - state.selectedStart) / 86400000);
+    const nuits = daysBetween(state.startStr, state.endStr);
     state.nuits = nuits;
-    // Surligner la ligne tarifaire correspondante
-    const bestType = nuits <= 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : nuits >= 7 ? 'semaine' : null;
+    const bestType = nuits === 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : nuits >= 7 ? 'semaine' : null;
     document.querySelectorAll('.duree-option').forEach(o => {
-      o.classList.toggle('selected', bestType ? o.dataset.duree === bestType : false);
+      o.classList.toggle('selected', !!bestType && o.dataset.duree === bestType);
     });
-    state.duree = bestType || 'custom';
   }
 
   grid.addEventListener('mouseleave', () => {
@@ -179,11 +157,13 @@
   nextBtn.addEventListener('click', () => { state.currentMonth++; if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; } buildCalendar(); });
 
   function updateInfo() {
-    if (!state.selectedStart) { infoEl.textContent = "Sélectionnez votre date d'arrivée."; }
-    else if (!state.selectedEnd) { infoEl.textContent = `Arrivée le ${formatDateFR(state.selectedStart)} — Sélectionnez la date de départ.`; }
-    else {
-      const n = Math.round((state.selectedEnd - state.selectedStart) / 86400000);
-      infoEl.textContent = `${formatDateFR(state.selectedStart)} → ${formatDateFR(state.selectedEnd)} — ${n} nuit${n > 1 ? 's' : ''}`;
+    if (!state.startStr) {
+      infoEl.textContent = "Cliquez sur votre date d'arrivée.";
+    } else if (!state.endStr) {
+      infoEl.textContent = `Arrivée : ${state.startStr} — Cliquez sur la date de départ.`;
+    } else {
+      const n = daysBetween(state.startStr, state.endStr);
+      infoEl.textContent = `${state.startStr} → ${state.endStr} — ${n} nuit${n > 1 ? 's' : ''}`;
     }
   }
 
@@ -237,8 +217,8 @@
   }
 
   function updateRecap() {
-    recapArrivee.textContent = state.selectedStart ? formatDateFR(state.selectedStart) : '—';
-    recapDepart.textContent  = state.selectedEnd   ? formatDateFR(state.selectedEnd)   : '—';
+    recapArrivee.textContent = state.startStr ? state.startStr : '—';
+    recapDepart.textContent  = state.endStr   ? state.endStr   : '—';
     recapDuree.textContent   = `${state.nuits} nuit${state.nuits > 1 ? 's' : ''}`;
     const base = prixPourNuits(state.nuits);
     recapPrixBase.textContent = `${base} €`;
@@ -303,8 +283,8 @@
   function updateSteps() {
     const s2 = document.getElementById('step-2-label');
     const s3 = document.getElementById('step-3-label');
-    if (s2) s2.classList.toggle('active', !!state.selectedStart);
-    if (s3) s3.classList.toggle('active', !!state.selectedStart && !!state.selectedEnd);
+    if (s2) s2.classList.toggle('active', !!state.startStr);
+    if (s3) s3.classList.toggle('active', !!state.startStr && !!state.endStr);
   }
 
   if (recapBtn) {
@@ -314,7 +294,7 @@
       const rgpd   = document.getElementById('rgpdCheck')?.checked;
       const cgv    = document.getElementById('cgvCheck')?.checked;
 
-      if (!state.selectedStart) return showToast("Sélectionnez une date d'arrivée.", 'error');
+      if (!state.startStr) return showToast("Sélectionnez une date d'arrivée.", 'error');
       if (!prenom || !email)    return showToast('Renseignez vos coordonnées.', 'error');
       if (!rgpd || !cgv)        return showToast('Acceptez nos conditions.', 'error');
 
@@ -336,8 +316,8 @@
           body: JSON.stringify({
             prenom, nom: document.getElementById('nom')?.value.trim(), email,
             telephone:    document.getElementById('telephone')?.value.trim(),
-            date_arrivee: formatDate(state.selectedStart),
-            date_depart:  state.selectedEnd ? formatDate(state.selectedEnd) : formatDate(state.selectedStart),
+            date_arrivee: state.startStr,
+            date_depart:  state.endStr || state.startStr,
             duree_type: state.duree, extras: extrasItems,
             montant_base: base, montant_extras: extrasTotal,
             montant_remise: discount,
