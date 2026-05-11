@@ -196,7 +196,7 @@
         return;
       }
       if (hasMondayNight(state.startStr, ds)) {
-        showToast('La nuit du lundi au mardi est réservée à la maintenance. Vous pouvez partir le lundi matin.', 'error');
+        showToast('La nuit du lundi au mardi est fermée pour raisons de maintenance. Vous pouvez partir le lundi matin. Pour un besoin particulier, <a href="contact.html" style="color:#fff;text-decoration:underline;">contactez-nous</a>.', 'error');
         return;
       }
       state.endStr = ds;
@@ -449,7 +449,7 @@
 
   function showToast(msg, type = 'success') {
     if (!toast) return;
-    toast.textContent = msg;
+    toast.innerHTML = msg;
     toast.className = `toast ${type} show`;
     setTimeout(() => toast.classList.remove('show'), 5000);
   }
