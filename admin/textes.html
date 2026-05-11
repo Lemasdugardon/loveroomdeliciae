@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Textes — Admin Loft Deliciae</title>
   <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .section-page { font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--argent);padding:2rem 0 0.5rem;margin-top:1.5rem;border-top:1px solid var(--border); }
+    .section-page:first-child { border-top:none;margin-top:0; }
+    textarea.ta { width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--perle);padding:0.7rem 1rem;font-family:var(--font-sans);font-size:0.85rem;font-weight:300;outline:none;resize:vertical; }
+  </style>
 </head>
 <body>
   <aside class="sidebar">
@@ -23,83 +28,198 @@
   <main class="main">
     <div class="page-header">
       <h1 class="page-title">Textes du site</h1>
-      <p class="page-sub">Modifiez les contenus affichés sur le site vitrine</p>
+      <p class="page-sub">Modifiez tous les contenus affichés sur la vitrine</p>
+    </div>
+
+    <!-- PAGE ACCUEIL -->
+    <div class="section-page">Page d'accueil</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Section Hero</div>
+      <div class="form-group"><label>Titre principal</label><input type="text" id="texte_hero_titre" placeholder="Une parenthèse hors du temps"></div>
+      <div class="form-group"><label>Sous-titre</label><input type="text" id="texte_hero_sous_titre" placeholder="Un espace pensé pour les amoureux..."></div>
+      <div class="form-group"><label>Bouton principal</label><input type="text" id="texte_hero_bouton" placeholder="Réserver votre séjour"></div>
     </div>
 
     <div class="form-section">
-      <div class="form-section-title">Section Hero (page d'accueil)</div>
-      <div class="form-group">
-        <label>Titre principal</label>
-        <input type="text" id="texte_hero_titre" placeholder="Loft Deliciae">
-      </div>
-      <div class="form-group">
-        <label>Sous-titre</label>
-        <input type="text" id="texte_hero_sous_titre" placeholder="Un refuge de luxe...">
-      </div>
-      <div class="form-group">
-        <label>Texte du bouton CTA</label>
-        <input type="text" id="texte_hero_bouton" placeholder="Réserver votre séjour">
+      <div class="form-section-title">Section Atmosphère / À propos</div>
+      <div class="form-group"><label>Titre</label><input type="text" id="texte_about_titre" placeholder="Un écrin de velours et de lumière tamisée"></div>
+      <div class="form-group"><label>Description</label><textarea id="texte_about_desc" rows="3" class="ta" placeholder="Le Loft Deliciae est une love room d'exception..."></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Section Expérience</div>
+      <div class="form-group"><label>Texte intro</label><input type="text" id="texte_experience_intro" placeholder="Du moment où vous franchissez la porte..."></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.8rem;">
+        <div class="form-group"><label>Carte 1 — Titre</label><input type="text" id="texte_exp1_titre" placeholder="Arrivée en toute intimité"></div>
+        <div class="form-group"><label>Carte 1 — Description</label><input type="text" id="texte_exp1_desc" placeholder="Accès sécurisé et discret..."></div>
+        <div class="form-group"><label>Carte 2 — Titre</label><input type="text" id="texte_exp2_titre" placeholder="Un cadre soigneusement préparé"></div>
+        <div class="form-group"><label>Carte 2 — Description</label><input type="text" id="texte_exp2_desc" placeholder="Ambiance lumineuse réglée..."></div>
+        <div class="form-group"><label>Carte 3 — Titre</label><input type="text" id="texte_exp3_titre" placeholder="Des attentions sur-mesure"></div>
+        <div class="form-group"><label>Carte 3 — Description</label><input type="text" id="texte_exp3_desc" placeholder="Champagne, plateau petit-déjeuner..."></div>
+        <div class="form-group"><label>Carte 4 — Titre</label><input type="text" id="texte_exp4_titre" placeholder="Un souvenir impérissable"></div>
+        <div class="form-group"><label>Carte 4 — Description</label><input type="text" id="texte_exp4_desc" placeholder="Parce que les plus beaux moments..."></div>
       </div>
     </div>
 
     <div class="form-section">
-      <div class="form-section-title">Section À propos / Le Loft</div>
-      <div class="form-group">
-        <label>Titre de section</label>
-        <input type="text" id="texte_about_titre" placeholder="Le Loft Deliciae">
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <textarea id="texte_about_desc" rows="4"
-          style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--perle);padding:0.7rem 1rem;font-family:var(--font-sans);font-size:0.85rem;font-weight:300;outline:none;resize:vertical"
-          placeholder="Description du loft..."></textarea>
-      </div>
+      <div class="form-section-title">CTA bas de page (accueil)</div>
+      <div class="form-group"><label>Texte</label><textarea id="texte_cta_intro" rows="2" class="ta" placeholder="Réservez en quelques minutes..."></textarea></div>
     </div>
+
+    <!-- PAGE LE LOFT -->
+    <div class="section-page">Page Le Loft</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Introduction</div>
+      <div class="form-group"><label>Sous-titre hero</label><input type="text" id="texte_loft_sous_titre" placeholder="Un sanctuaire de velours au cœur de Remoulins"></div>
+      <div class="form-group"><label>Paragraphe concept 1</label><textarea id="texte_loft_intro1" rows="3" class="ta" placeholder="Le Loft Deliciae est bien plus qu'une chambre d'hôtel..."></textarea></div>
+      <div class="form-group"><label>Paragraphe concept 2</label><textarea id="texte_loft_intro2" rows="3" class="ta" placeholder="Sur 65 m², vous disposez d'un espace de vie complet..."></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Équipements</div>
+      <div id="equip-fields"></div>
+    </div>
+
+    <!-- PAGE CONTACT -->
+    <div class="section-page">Page Contact</div>
 
     <div class="form-section">
       <div class="form-section-title">Informations de contact</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Adresse</label>
-          <input type="text" id="texte_contact_adresse" placeholder="123 rue...">
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="texte_contact_email" placeholder="contact@loftdeliciae.fr">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Téléphone</label>
-        <input type="text" id="texte_contact_tel" placeholder="+33 6 00 00 00 00">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group"><label>Adresse</label><input type="text" id="texte_contact_adresse" placeholder="Remoulins, France"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="texte_contact_email" placeholder="contact@loftdeliciae.fr"></div>
+        <div class="form-group"><label>Téléphone</label><input type="text" id="texte_contact_tel" placeholder="+33 6 00 00 00 00"></div>
+        <div class="form-group"><label>Horaires check-in / check-out</label><input type="text" id="texte_contact_horaires" placeholder="Arrivée : à partir de 15h — Départ : jusqu'à 12h"></div>
       </div>
     </div>
 
-    <div class="form-actions">
-      <button class="btn-save" onclick="saveTextes()">Enregistrer les modifications</button>
+    <div class="form-section">
+      <div class="form-section-title">FAQ</div>
+      <div id="faq-fields"></div>
+    </div>
+
+    <!-- LÉGAL -->
+    <div class="section-page">Légal</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Politique de confidentialité</div>
+      <div class="form-group"><label>Responsable du traitement</label><input type="text" id="texte_confidentialite1" placeholder="Loft Deliciae, Remoulins, France."></div>
+      <div class="form-group"><label>Données collectées</label><textarea id="texte_confidentialite2" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Finalité</label><textarea id="texte_confidentialite3" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Conservation</label><input type="text" id="texte_confidentialite4" placeholder="Vos données sont conservées 3 ans..."></div>
+      <div class="form-group"><label>Partage</label><textarea id="texte_confidentialite5" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Vos droits</label><input type="text" id="texte_confidentialite6" placeholder="Accès, rectification, suppression..."></div>
+      <div class="form-group"><label>Cookies</label><input type="text" id="texte_confidentialite7" placeholder="Ce site utilise uniquement des cookies techniques..."></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Conditions Générales de Vente</div>
+      <div class="form-group"><label>Article 1 — Objet</label><textarea id="texte_cgv1" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Article 2 — Réservation</label><textarea id="texte_cgv2" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Article 3 — Tarifs</label><textarea id="texte_cgv3" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Article 4 — Annulation</label><textarea id="texte_cgv4" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Article 5 — Règlement intérieur</label><textarea id="texte_cgv5" rows="2" class="ta"></textarea></div>
+      <div class="form-group"><label>Article 6 — Responsabilité</label><textarea id="texte_cgv6" rows="2" class="ta"></textarea></div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-title">Mentions légales</div>
+      <div class="form-group"><label>Éditeur du site</label><input type="text" id="texte_mentions1" placeholder="Loft Deliciae — Remoulins, France"></div>
+      <div class="form-group"><label>Contact</label><input type="text" id="texte_mentions2" placeholder="contact@loftdeliciae.fr"></div>
+      <div class="form-group"><label>Hébergement</label><input type="text" id="texte_mentions3" placeholder="Vercel Inc. — San Francisco, CA, USA"></div>
+      <div class="form-group"><label>Droit applicable</label><input type="text" id="texte_mentions4" placeholder="Droit français..."></div>
+      <div class="form-group"><label>Propriété intellectuelle</label><textarea id="texte_mentions5" rows="2" class="ta"></textarea></div>
+    </div>
+
+    <!-- GLOBAL -->
+    <div class="section-page">Éléments globaux (toutes les pages)</div>
+
+    <div class="form-section">
+      <div class="form-section-title">Footer</div>
+      <div class="form-group"><label>Tagline</label><input type="text" id="texte_footer_tagline" placeholder="Un espace pensé pour les amoureux"></div>
+      <div class="form-group"><label>Description</label><textarea id="texte_footer_desc" rows="2" class="ta" placeholder="Love room haut de gamme nichée au cœur de Remoulins..."></textarea></div>
+    </div>
+
+    <div class="form-actions" style="position:sticky;bottom:0;background:var(--noir);padding:1.5rem 0;border-top:1px solid var(--border);z-index:10;">
+      <button class="btn-save" onclick="saveTextes()" style="min-width:260px;">Enregistrer toutes les modifications</button>
     </div>
   </main>
 
   <script src="js/admin.js"></script>
   <script>
-    const FIELDS = [
-      'texte_hero_titre', 'texte_hero_sous_titre', 'texte_hero_bouton',
-      'texte_about_titre', 'texte_about_desc',
-      'texte_contact_adresse', 'texte_contact_email', 'texte_contact_tel'
+    const EQUIP_LABELS = ['Lit King-Size','Jacuzzi Balnéo Privatif','Douche Italienne','Système Audio Haut de Gamme','Éclairage Scénographique','Espace Salon Privé','Climatisation Silencieuse','Wi-Fi Haut Débit & Discrétion'];
+    const FAQ_LABELS   = [
+      'Comment se passe la réservation ?',
+      'Le lieu apparaîtra-t-il sur mon relevé bancaire ?',
+      'Comment se passe le check-in ?',
+      "Quelle est la politique d'annulation ?",
+      'Les options peuvent-elles être ajoutées après la réservation ?',
+      'Y a-t-il des caméras dans le loft ?',
+      'Quels modes de paiement acceptez-vous ?',
+      "Est-il possible d'organiser une surprise pour mon partenaire ?"
     ];
+
+    // Build équipement fields
+    const equipContainer = document.getElementById('equip-fields');
+    EQUIP_LABELS.forEach((label, i) => {
+      const n = i + 1;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.6rem;';
+      row.innerHTML = `
+        <div class="form-group"><label>Équipement ${n} — Titre</label><input type="text" id="texte_equip${n}_titre" placeholder="${label}"></div>
+        <div class="form-group"><label>Équipement ${n} — Description</label><input type="text" id="texte_equip${n}_desc" placeholder="Description..."></div>`;
+      equipContainer.appendChild(row);
+    });
+
+    // Build FAQ fields
+    const faqContainer = document.getElementById('faq-fields');
+    FAQ_LABELS.forEach((q, i) => {
+      const n = i + 1;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1rem;';
+      wrap.innerHTML = `
+        <div class="form-group"><label>Question ${n}</label><input type="text" id="texte_faq${n}_q" placeholder="${q.replace(/"/g,'&quot;')}"></div>
+        <div class="form-group"><label>Réponse ${n}</label><textarea id="texte_faq${n}_a" rows="3" class="ta"></textarea></div>`;
+      faqContainer.appendChild(wrap);
+    });
+
+    function getAllFields() {
+      const fields = [
+        'texte_hero_titre','texte_hero_sous_titre','texte_hero_bouton',
+        'texte_about_titre','texte_about_desc',
+        'texte_exp1_titre','texte_exp1_desc','texte_exp2_titre','texte_exp2_desc',
+        'texte_exp3_titre','texte_exp3_desc','texte_exp4_titre','texte_exp4_desc',
+        'texte_experience_intro','texte_cta_intro',
+        'texte_loft_sous_titre','texte_loft_intro1','texte_loft_intro2',
+        'texte_contact_adresse','texte_contact_email','texte_contact_tel','texte_contact_horaires',
+        'texte_confidentialite1','texte_confidentialite2','texte_confidentialite3',
+        'texte_confidentialite4','texte_confidentialite5','texte_confidentialite6','texte_confidentialite7',
+        'texte_cgv1','texte_cgv2','texte_cgv3','texte_cgv4','texte_cgv5','texte_cgv6',
+        'texte_mentions1','texte_mentions2','texte_mentions3','texte_mentions4','texte_mentions5',
+        'texte_footer_tagline','texte_footer_desc',
+      ];
+      for (let i = 1; i <= 8; i++) {
+        fields.push(`texte_equip${i}_titre`, `texte_equip${i}_desc`);
+        fields.push(`texte_faq${i}_q`, `texte_faq${i}_a`);
+      }
+      return fields;
+    }
 
     async function loadTextes() {
       const res = await fetch('/api/admin/textes', { headers: authHeaders() });
       if (!res.ok) return;
       const textes = await res.json();
-      FIELDS.forEach(key => {
+      getAllFields().forEach(key => {
         const el = document.getElementById(key);
-        if (el && textes[key]) el.value = textes[key];
+        if (el && textes[key] !== undefined) el.value = textes[key];
       });
     }
 
     async function saveTextes() {
       const textes = {};
-      FIELDS.forEach(key => {
+      getAllFields().forEach(key => {
         const el = document.getElementById(key);
         if (el) textes[key] = el.value;
       });
@@ -108,7 +228,10 @@
         body: JSON.stringify(textes)
       });
       if (res.ok) toast('Textes enregistrés ✓');
-      else toast('Erreur', 'error');
+      else {
+        const body = await res.json().catch(() => ({}));
+        toast('Erreur : ' + (body.detail || body.error || 'inconnue'), 'error');
+      }
     }
 
     loadTextes();
