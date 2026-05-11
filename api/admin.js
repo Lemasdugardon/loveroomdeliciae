@@ -93,14 +93,35 @@ export default async function handler(req, res) {
       return res.status(201).json({ ok: true, count: dates.length });
     }
     if (req.method === 'DELETE') {
-      // Vercel ne parse pas le body des DELETE → on lit les params d'URL en priorité
       const q = req.query;
       const b = req.body || {};
-      const date      = q.date       || b.date;
+      const date       = q.date       || b.date;
       const date_debut = q.date_debut || b.date_debut;
       const date_fin   = q.date_fin   || b.date_fin;
+
+      if (!date && !(date_debut && date_fin)) {
+        return res.status(400).json({ error: 'Date manquante', recu: q });
+      }
+
       const dates = date_debut && date_fin ? dateRange(date_debut, date_fin) : [date];
-      for (const d of dates) await supabase.from('blocked_dates').delete().eq('date', d);
+
+      for (const d of dates) {
+        const delRes = await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/blocked_dates?date=eq.${encodeURIComponent(d)}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'apikey': process.env.SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+              'Prefer': 'return=minimal',
+            },
+          }
+        );
+        if (!delRes.ok) {
+          const txt = await delRes.text().catch(() => 'inconnu');
+          return res.status(400).json({ error: 'Suppression échouée', date: d, detail: txt });
+        }
+      }
       return res.status(200).json({ ok: true });
     }
     return res.status(405).end();
