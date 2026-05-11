@@ -217,14 +217,14 @@ export default async function handler(req, res) {
     const objectName = `${Date.now()}-${safeName}`;
     const buffer     = Buffer.from(data, 'base64');
     const uploadRes  = await fetch(
-      `${process.env.SUPABASE_URL}/storage/v1/object/photos/${objectName}`,
+      `${process.env.SUPABASE_URL}/storage/v1/object/Photos/${objectName}`,
       { method: 'POST', headers: { 'apikey': process.env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`, 'Content-Type': contentType, 'x-upsert': 'true' }, body: buffer }
     );
     if (!uploadRes.ok) {
       const err = await uploadRes.json().catch(() => ({}));
       return res.status(400).json({ error: err.message || 'Échec upload' });
     }
-    return res.status(200).json({ url: `${process.env.SUPABASE_URL}/storage/v1/object/public/photos/${objectName}` });
+    return res.status(200).json({ url: `${process.env.SUPABASE_URL}/storage/v1/object/public/Photos/${objectName}` });
   }
 
   res.status(404).json({ error: 'Route inconnue' });
