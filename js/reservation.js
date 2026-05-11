@@ -128,16 +128,36 @@
   }
 
   function onDayClick(date) {
-    state.selectedStart = date;
-    const depart = new Date(date);
-    depart.setDate(depart.getDate() + state.nuits);
-    state.selectedEnd = depart;
+    if (!state.selectedStart || (state.selectedStart && state.selectedEnd)) {
+      state.selectedStart = date; state.selectedEnd = null;
+    } else {
+      if (date <= state.selectedStart) { state.selectedStart = date; state.selectedEnd = null; }
+      else { state.selectedEnd = date; }
+    }
     state.hoverDate = null;
+    if (state.selectedStart && state.selectedEnd) applyTarifFromSelection();
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
   function onDayHover(date) {
-    state.hoverDate = date; buildCalendar();
+    if (state.selectedStart && !state.selectedEnd) { state.hoverDate = date; buildCalendar(); }
+  }
+
+  function applyTarifFromSelection() {
+    const nuits = Math.round((state.selectedEnd - state.selectedStart) / 86400000);
+    state.nuits = nuits;
+    // Highlight matching duree-option
+    let bestType = null;
+    if      (nuits <= 1) bestType = 'nuit';
+    else if (nuits === 2) bestType = 'weekend';
+    else if (nuits === 3) bestType = 'long';
+    else if (nuits >= 7) bestType = 'semaine';
+    document.querySelectorAll('.duree-option').forEach(o => {
+      const match = bestType && o.dataset.duree === bestType;
+      o.classList.toggle('selected', match);
+      o.setAttribute('aria-checked', match ? 'true' : 'false');
+    });
+    state.duree = bestType || 'nuit';
   }
 
   grid.addEventListener('mouseleave', () => {
@@ -168,6 +188,11 @@
         buildCalendar(); updateInfo();
       }
       updateRecap(); updateSteps();
+      // Sync highlight
+      document.querySelectorAll('.duree-option').forEach(o => {
+        o.classList.toggle('selected', o === opt);
+        o.setAttribute('aria-checked', o === opt ? 'true' : 'false');
+      });
     });
   });
 
@@ -199,6 +224,16 @@
     });
   }
 
+  function prixPourNuits(nuits) {
+    if (nuits <= 1)  return PRIX_BASE.nuit     || 180;
+    if (nuits === 2) return PRIX_BASE.weekend  || 320;
+    if (nuits === 3) return PRIX_BASE.long     || 450;
+    if (nuits >= 7)  return PRIX_BASE.semaine  || 980;
+    // 4, 5, 6 nuits : interpolation au prorata nuitée
+    const tauxNuit = (PRIX_BASE.nuit || 180);
+    return Math.round(tauxNuit * nuits);
+  }
+
   function calcDiscount(base, extrasTotal) {
     if (!appliedPromo) return 0;
     const subtotal = base + extrasTotal;
@@ -212,7 +247,7 @@
     recapArrivee.textContent = state.selectedStart ? formatDateFR(state.selectedStart) : '—';
     recapDepart.textContent  = state.selectedEnd   ? formatDateFR(state.selectedEnd)   : '—';
     recapDuree.textContent   = `${state.nuits} nuit${state.nuits > 1 ? 's' : ''}`;
-    const base = PRIX_BASE[state.duree] || 180;
+    const base = prixPourNuits(state.nuits);
     recapPrixBase.textContent = `${base} €`;
     let extrasTotal = 0;
     recapExtrasContainer.innerHTML = '';
