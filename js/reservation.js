@@ -95,6 +95,23 @@
     return new Date(ds + 'T12:00:00').getDay() === 1;
   }
 
+  // Retourne la date du premier lundi strictement après startStr (dans les 7 prochains jours)
+  function firstMondayAfter(startStr) {
+    const d = new Date(startStr + 'T12:00:00');
+    for (let i = 1; i <= 7; i++) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() === 1) return d.toISOString().split('T')[0];
+    }
+    return null;
+  }
+
+  // Vrai si la sélection start→end inclut une nuit lundi→mardi
+  // (c'est le cas si un lundi d est strictement entre start et end)
+  function hasMondayNight(startStr, endStr) {
+    const monday = firstMondayAfter(startStr);
+    return monday ? monday < endStr : false;
+  }
+
   function buildCalendar() {
     const { currentYear: year, currentMonth: month } = state;
     monthLabel.textContent = `${MONTHS_FR[month]} ${year}`;
@@ -109,6 +126,15 @@
 
     const rangeEnd = state.endStr || (state.startStr && state.hoverStr > state.startStr ? state.hoverStr : null);
 
+    // Quand une arrivée est sélectionnée : calcule la limite max de départ
+    // Le lundi est la dernière date de départ valide (départ lundi matin = OK, mardi = nuit lundi incluse = KO)
+    let maxDepartStr = null;
+    if (state.startStr && !state.endStr) {
+      const maxByNights = addDays(state.startStr, 6);
+      const nextMonday  = firstMondayAfter(state.startStr);
+      maxDepartStr = nextMonday && nextMonday < maxByNights ? nextMonday : maxByNights;
+    }
+
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const cell = document.createElement('div');
@@ -118,7 +144,9 @@
 
       // Lundi = maintenance : bloqué pour arrivée, autorisé pour départ
       const mondayBlock = isMonday(ds) && !state.startStr;
-      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || mondayBlock) {
+      // Après le max de départ (dépasse lundi ou 6 nuits) → invalide comme départ
+      const afterMaxDepart = maxDepartStr && ds > maxDepartStr;
+      if (ds < TODAY_STR || BOOKED_DATES.has(ds) || mondayBlock || afterMaxDepart) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
         if (isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds)) {
@@ -160,6 +188,10 @@
         showToast('Des dates sont indisponibles dans cette période.', 'error');
         return;
       }
+      if (hasMondayNight(state.startStr, ds)) {
+        showToast('La nuit du lundi au mardi est réservée à la maintenance. Vous pouvez partir le lundi matin.', 'error');
+        return;
+      }
       state.endStr = ds;
       applyTarifFromSelection();
     }
@@ -182,9 +214,12 @@
 
   function onDayHover(ds) {
     if (!state.startStr || state.endStr) return;
-    const maxEnd   = addDays(state.startStr, 6);
-    const blocked  = firstBlockedAfter(state.startStr);
-    const cap      = blocked && blocked < maxEnd ? blocked : maxEnd;
+    const maxEnd    = addDays(state.startStr, 6);
+    const blocked   = firstBlockedAfter(state.startStr);
+    const nextMonday = firstMondayAfter(state.startStr);
+    // Peut partir au plus tard le lundi (départ lundi matin = OK) mais pas au-delà
+    let cap = blocked && blocked < maxEnd ? blocked : maxEnd;
+    if (nextMonday && nextMonday < cap) cap = nextMonday;
     const effective = ds > cap ? cap : ds;
     grid.querySelectorAll('.cal-day[data-date]').forEach(cell => {
       const d = cell.dataset.date;
