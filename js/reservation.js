@@ -438,9 +438,14 @@
         if (res.ok) {
           showToast('Demande envoyée ! Nous vous confirmons sous 24h.', 'success');
           recapBtn.textContent = 'Demande envoyée ✓';
-        } else throw new Error();
-      } catch {
-        showToast("Erreur lors de l'envoi. Réessayez.", 'error');
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          showToast(`Erreur ${res.status} : ${errData.error || errData.detail || 'inconnue'}`, 'error');
+          recapBtn.disabled = false;
+          recapBtn.textContent = 'Procéder au paiement';
+        }
+      } catch (e) {
+        showToast(`Erreur réseau : ${e.message}`, 'error');
         recapBtn.disabled = false;
         recapBtn.textContent = 'Procéder au paiement';
       }
