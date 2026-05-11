@@ -133,7 +133,13 @@
   }
 
   function onDayHover(ds) {
-    if (state.startStr && !state.endStr) { state.hoverStr = ds; buildCalendar(); }
+    if (!state.startStr || state.endStr) return;
+    state.hoverStr = ds;
+    grid.querySelectorAll('.cal-day[data-date]').forEach(cell => {
+      const d = cell.dataset.date;
+      const inRange = ds > state.startStr && d > state.startStr && d < ds;
+      cell.classList.toggle('in-range', inRange);
+    });
   }
 
   function daysBetween(s1, s2) {
