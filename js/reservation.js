@@ -247,6 +247,10 @@
   prevBtn.addEventListener('click', () => { state.currentMonth--; if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; } buildCalendar(); });
   nextBtn.addEventListener('click', () => { state.currentMonth++; if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; } buildCalendar(); });
 
+  ['heure_arrivee', 'heure_depart'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', updateRecap);
+  });
+
   function updateInfo() {
     if (!state.startStr) {
       infoEl.textContent = "Cliquez sur votre date d'arrivée.";
@@ -305,9 +309,15 @@
     return Math.min(appliedPromo.discount_value, subtotal);
   }
 
+  function heureLabel(val) { return val ? val.replace(':', 'h') : '—'; }
+
   function updateRecap() {
     recapArrivee.textContent = state.startStr ? state.startStr : '—';
     recapDepart.textContent  = state.endStr   ? state.endStr   : '—';
+    const recapHA = document.getElementById('recap-heure-arrivee');
+    const recapHD = document.getElementById('recap-heure-depart');
+    if (recapHA) recapHA.textContent = heureLabel(document.getElementById('heure_arrivee')?.value);
+    if (recapHD) recapHD.textContent = heureLabel(document.getElementById('heure_depart')?.value);
     recapDuree.textContent   = `${state.nuits} nuit${state.nuits > 1 ? 's' : ''}`;
     const base = prixPourNuits(state.nuits);
     recapPrixBase.textContent = `${base} €`;
@@ -405,8 +415,10 @@
           body: JSON.stringify({
             prenom, nom: document.getElementById('nom')?.value.trim(), email,
             telephone:    document.getElementById('telephone')?.value.trim(),
-            date_arrivee: state.startStr,
-            date_depart:  state.endStr || state.startStr,
+            date_arrivee:  state.startStr,
+            date_depart:   state.endStr || state.startStr,
+            heure_arrivee: document.getElementById('heure_arrivee')?.value || '17:00',
+            heure_depart:  document.getElementById('heure_depart')?.value  || '10:00',
             duree_type: state.duree, extras: extrasItems,
             montant_base: base, montant_extras: extrasTotal,
             montant_remise: discount,

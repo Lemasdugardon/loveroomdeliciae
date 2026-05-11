@@ -89,7 +89,13 @@
               <small style="opacity:0.5">${r.email}</small><br>
               <small style="opacity:0.4">${r.telephone || ''}</small>
             </td>
-            <td>${dateFR(r.date_arrivee)}<br><small style="opacity:0.5">→ ${dateFR(r.date_depart)}</small></td>
+            <td>
+              ${dateFR(r.date_arrivee)}
+              ${r.heure_arrivee ? `<small style="opacity:0.6"> ${r.heure_arrivee.slice(0,5).replace(':','h')}</small>` : ''}
+              <br>
+              <small style="opacity:0.5">→ ${dateFR(r.date_depart)}
+              ${r.heure_depart ? ` ${r.heure_depart.slice(0,5).replace(':','h')}` : ''}</small>
+            </td>
             <td style="text-transform:capitalize">${r.duree_type}</td>
             <td style="font-size:0.72rem;max-width:150px">${extrasNames}</td>
             <td><strong>${euros(r.montant_total)}</strong><br><small style="opacity:0.4">${euros(r.montant_base)} base</small></td>

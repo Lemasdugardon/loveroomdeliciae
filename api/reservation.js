@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   const {
     prenom, nom, email, telephone,
-    date_arrivee, date_depart, duree_type,
+    date_arrivee, date_depart, heure_arrivee, heure_depart, duree_type,
     extras, montant_base, montant_extras, montant_total,
     occasion, message
   } = req.body;
@@ -19,7 +19,10 @@ export default async function handler(req, res) {
     .from('reservations')
     .insert({
       prenom, nom, email, telephone,
-      date_arrivee, date_depart, duree_type,
+      date_arrivee, date_depart,
+      heure_arrivee: heure_arrivee || '17:00',
+      heure_depart:  heure_depart  || '10:00',
+      duree_type,
       extras: extras || [],
       montant_base, montant_extras: montant_extras || 0, montant_total,
       occasion, message,
