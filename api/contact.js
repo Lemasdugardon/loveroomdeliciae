@@ -21,8 +21,8 @@ export default async function handler(req, res) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Loft Deliciae <onboarding@resend.dev>',
-      to: ['Lemasdugardon@gmail.com'],
+      from: 'Loft Deliciae <contact@loftdeliciae.fr>',
+      to: ['lemasdugardon@gmail.com'],
       subject: `Nouveau message — ${sujet || 'Contact'} — Loft Deliciae`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
