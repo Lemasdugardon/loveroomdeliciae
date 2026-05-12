@@ -126,6 +126,43 @@ export default async function handler(req, res) {
     if (req.method === 'PATCH') {
       const { id, statut } = req.body;
       await supabase.from('reservations').update({ statut }).eq('id', id);
+
+      if (statut === 'cancelled') {
+        const { data: resa } = await supabase.from('reservations').select('*').eq('id', id).single();
+        const key = process.env.RESEND_API_KEY;
+        if (key && resa) {
+          const fmt = d => d ? new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: 'Loft Deliciae <contact@loftdeliciae.fr>',
+              to: [resa.email],
+              subject: `Votre demande de réservation — Loft Deliciae`,
+              html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                <h2 style="color:#333;">Bonjour ${resa.prenom},</h2>
+                <p style="color:#666;line-height:1.7;">
+                  Nous avons bien reçu votre demande de réservation pour le séjour du
+                  <strong>${fmt(resa.date_arrivee)}</strong> au <strong>${fmt(resa.date_depart)}</strong>.
+                </p>
+                <p style="color:#666;line-height:1.7;">
+                  Malheureusement, nous ne sommes pas en mesure d'honorer votre réservation pour ces dates.
+                  Nous vous invitons à consulter nos disponibilités pour choisir d'autres dates.
+                </p>
+                <div style="text-align:center;margin:28px 0;">
+                  <a href="https://www.loftdeliciae.fr/reservation.html"
+                     style="display:inline-block;background:#c9a96e;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:1rem;font-weight:bold;">
+                    Voir les disponibilités →
+                  </a>
+                </div>
+                <p style="color:#666;">Pour toute question, contactez-nous sur <a href="https://www.loftdeliciae.fr/contact" style="color:#c9a96e;">loftdeliciae.fr/contact</a>.</p>
+                <p style="font-size:13px;color:#999;">Loft Deliciae — Love Room à Remoulins</p>
+              </div>`,
+            }),
+          });
+        }
+      }
+
       return res.status(200).json({ ok: true });
     }
     return res.status(405).end();
