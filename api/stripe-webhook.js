@@ -10,45 +10,32 @@ async function sendEmail(payload) {
   });
 }
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+async function processPayment(sessionId) {
+  if (!sessionId) return;
 
-  const event = req.body;
-  if (!event || event.type !== 'checkout.session.completed') {
-    return res.status(200).json({ received: true });
-  }
-
-  const sessionData = event.data?.object;
-  const resa_id = sessionData?.metadata?.resa_id;
-  const sessionId = sessionData?.id;
-
-  if (!resa_id || !sessionId) return res.status(200).json({ received: true });
-
-  // Vérification indépendante auprès de Stripe (pas de risque de faux appel)
+  // Vérification indépendante auprès de Stripe
   const stripeRes = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
     headers: { 'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}` },
   });
+  if (!stripeRes.ok) return;
+
   const session = await stripeRes.json();
+  if (session.payment_status !== 'paid') return;
 
-  if (!stripeRes.ok || session.payment_status !== 'paid') {
-    return res.status(200).json({ received: true });
-  }
+  const resa_id = session.metadata?.resa_id;
+  if (!resa_id) return;
 
-  // Mise à jour du statut en base
-  const { data: resa, error } = await supabase
+  // Mise à jour en base (sans .single() pour éviter les erreurs si déjà confirmé)
+  const { data: rows } = await supabase
     .from('reservations')
     .update({ statut: 'confirmed' })
     .eq('id', resa_id)
-    .select().single();
+    .neq('statut', 'confirmed')
+    .select();
 
-  if (error) return res.status(500).json({ error: error.message });
+  const r = rows?.[0];
+  if (!r) return; // déjà confirmé ou introuvable
 
-  // Répondre à Stripe immédiatement
-  res.status(200).json({ received: true });
-
-  // Emails en arrière-plan
-  if (!resa) return;
-  const r = resa;
   const fmt = d => d ? new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
   const euros = n => `${n ?? 0} €`;
 
@@ -93,4 +80,25 @@ export default async function handler(req, res) {
       <p style="margin-top:8px;font-size:13px;color:#999;">Loft Deliciae — Love Room à Remoulins</p>
     </div>`,
   });
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  // Répondre 200 immédiatement à Stripe pour éviter les retentatives
+  res.status(200).json({ received: true });
+
+  try {
+    const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    if (!event || event.type !== 'checkout.session.completed') return;
+
+    // Extraire l'ID de session selon le format de l'événement (V1 ou V2)
+    const sessionId = event.data?.object?.id
+      || event.related_object?.id
+      || event.data?.id;
+
+    await processPayment(sessionId);
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+  }
 }
