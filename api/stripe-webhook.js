@@ -22,7 +22,14 @@ async function processPayment(sessionId) {
   const session = await stripeRes.json();
   if (session.payment_status !== 'paid') return;
 
-  const resa_id = session.metadata?.resa_id;
+  // Extraire resa_id depuis metadata OU depuis l'URL de succès (fallback)
+  let resa_id = session.metadata?.resa_id;
+  if (!resa_id && session.success_url) {
+    try {
+      const url = new URL(session.success_url.replace('{CHECKOUT_SESSION_ID}', sessionId));
+      resa_id = url.searchParams.get('resa_id');
+    } catch {}
+  }
   if (!resa_id) return;
 
   // Mise à jour en base (sans .single() pour éviter les erreurs si déjà confirmé)
