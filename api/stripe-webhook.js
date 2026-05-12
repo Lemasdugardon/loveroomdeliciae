@@ -111,7 +111,7 @@ export default async function handler(req, res) {
         <h2 style="color:#333;">Votre réservation est confirmée, ${r.prenom} !</h2>
         <p style="color:#666;">Votre paiement a bien été reçu. Nous avons hâte de vous accueillir au Loft Deliciae.</p>
         <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
-        <p style="margin-top:24px;color:#666;">Pour toute question, contactez-nous sur <a href="https://loftdeliciae.fr/contact">loftdeliciae.fr</a>.</p>
+        <p style="margin-top:24px;color:#666;">Pour toute question, contactez-nous sur <a href="https://www.loftdeliciae.fr/contact">loftdeliciae.fr</a>.</p>
         <p style="margin-top:8px;font-size:13px;color:#999;">Loft Deliciae — Love Room à Remoulins</p>
       </div>`,
     }),
