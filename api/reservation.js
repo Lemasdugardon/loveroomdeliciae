@@ -83,7 +83,7 @@ export default async function handler(req, res) {
         <p style="color:#666;">Une nouvelle demande vient d'être reçue. Statut : <strong>En attente de confirmation</strong>.</p>
         <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
         <p style="margin-top:24px;font-size:13px;color:#999;">
-          Connectez-vous à l'<a href="https://loftdeliciae.fr/admin/">espace admin</a> pour confirmer ou annuler cette réservation.
+          Connectez-vous à l'<a href="https://www.loftdeliciae.fr/admin/index.html">espace admin</a> pour confirmer ou annuler cette réservation.
         </p>
       </div>
     `,
