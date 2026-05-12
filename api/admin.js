@@ -33,6 +33,88 @@ export default async function handler(req, res) {
   /* All other routes require admin */
   if (!checkAdmin(req, res)) return;
 
+  /* SEND PAYMENT LINK */
+  if (resource === 'send-payment-link') {
+    if (req.method !== 'POST') return res.status(405).end();
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'ID manquant' });
+
+    const { data: resa, error: resaErr } = await supabase.from('reservations').select('*').eq('id', id).single();
+    if (resaErr || !resa) return res.status(404).json({ error: 'Réservation introuvable' });
+
+    if (!process.env.STRIPE_SECRET_KEY) return res.status(500).json({ error: 'Stripe non configuré' });
+
+    const STRIPE_API = 'https://api.stripe.com/v1';
+    const baseUrl = process.env.SITE_URL || 'https://loftdeliciae.fr';
+
+    const body = new URLSearchParams({
+      mode: 'payment',
+      customer_email: resa.email,
+      'line_items[0][price_data][currency]': 'eur',
+      'line_items[0][price_data][unit_amount]': String(Math.round((resa.montant_total || 0) * 100)),
+      'line_items[0][price_data][product_data][name]': `Loft Deliciae — ${resa.date_arrivee} → ${resa.date_depart}`,
+      'line_items[0][price_data][product_data][description]': `Séjour du ${resa.date_arrivee} au ${resa.date_depart}`,
+      'line_items[0][quantity]': '1',
+      'payment_method_types[0]': 'card',
+      'success_url': `${baseUrl}/reservation-success.html?session_id={CHECKOUT_SESSION_ID}&resa_id=${resa.id}`,
+      'cancel_url': `${baseUrl}/reservation.html?cancelled=1`,
+      'metadata[resa_id]': String(resa.id),
+      'metadata[client]': `${resa.prenom} ${resa.nom}`,
+    });
+
+    const stripeRes = await fetch(`${STRIPE_API}/checkout/sessions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+
+    const session = await stripeRes.json();
+    if (!stripeRes.ok) return res.status(500).json({ error: session.error?.message || 'Erreur Stripe' });
+
+    await supabase.from('reservations').update({ statut: 'awaiting_payment' }).eq('id', id);
+
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    const key = process.env.RESEND_API_KEY;
+    if (key) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'Loft Deliciae <contact@loftdeliciae.fr>',
+          to: [resa.email],
+          subject: `✅ Votre réservation est validée — Finalisez votre paiement`,
+          html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+            <h2 style="color:#333;">Bonne nouvelle, ${resa.prenom} !</h2>
+            <p style="color:#666;line-height:1.7;">
+              Votre demande de réservation au <strong>Loft Deliciae</strong> a été validée.<br>
+              Il ne vous reste plus qu'à finaliser votre paiement pour confirmer votre séjour.
+            </p>
+            <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+              <tr><td style="padding:8px;color:#666;">Arrivée</td><td style="padding:8px;font-weight:bold;">${fmtDate(resa.date_arrivee)}</td></tr>
+              <tr style="background:#f9f9f9;"><td style="padding:8px;color:#666;">Départ</td><td style="padding:8px;font-weight:bold;">${fmtDate(resa.date_depart)}</td></tr>
+              <tr><td style="padding:8px;color:#666;font-weight:bold;">Total à régler</td><td style="padding:8px;font-weight:bold;font-size:1.1em;">${resa.montant_total ?? 0} €</td></tr>
+            </table>
+            <div style="text-align:center;margin:28px 0;">
+              <a href="${session.url}" style="display:inline-block;background:#c9a96e;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:1rem;font-weight:bold;">
+                Payer ma réservation →
+              </a>
+            </div>
+            <p style="color:#999;font-size:12px;line-height:1.6;">
+              Ce lien est valable 24h. Pour toute question, contactez-nous sur
+              <a href="https://loftdeliciae.fr/contact" style="color:#c9a96e;">loftdeliciae.fr/contact</a>.
+            </p>
+            <p style="color:#bbb;font-size:11px;">Loft Deliciae — Love Room à Remoulins</p>
+          </div>`,
+        }),
+      });
+    }
+
+    return res.status(200).json({ ok: true });
+  }
+
   /* RESERVATIONS */
   if (resource === 'reservations') {
     if (req.method === 'GET') {

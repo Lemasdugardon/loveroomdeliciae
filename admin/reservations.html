@@ -28,10 +28,11 @@
 
     <!-- Filtres -->
     <div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-      <button class="btn-sm" onclick="filterBy('all')"     id="f-all">Toutes</button>
-      <button class="btn-sm" onclick="filterBy('pending')"  id="f-pending">En attente</button>
-      <button class="btn-sm" onclick="filterBy('confirmed')" id="f-confirmed">Confirmées</button>
-      <button class="btn-sm" onclick="filterBy('cancelled')" id="f-cancelled">Annulées</button>
+      <button class="btn-sm" onclick="filterBy('all')"              id="f-all">Toutes</button>
+      <button class="btn-sm" onclick="filterBy('pending')"           id="f-pending">En attente</button>
+      <button class="btn-sm" onclick="filterBy('awaiting_payment')"  id="f-awaiting_payment">Lien envoyé</button>
+      <button class="btn-sm" onclick="filterBy('confirmed')"         id="f-confirmed">Confirmées</button>
+      <button class="btn-sm" onclick="filterBy('cancelled')"         id="f-cancelled">Annulées</button>
     </div>
 
     <div class="table-wrap">
@@ -95,7 +96,8 @@
             <td><strong>${euros(r.montant_total)}</strong><br><small style="opacity:0.4">${euros(r.montant_base)} base</small></td>
             <td><span class="badge badge-${r.statut}">${r.statut}</span></td>
             <td>
-              ${r.statut === 'pending' ? `<button class="btn-sm btn-confirm" onclick="updateStatut('${r.id}','confirmed')">Confirmer</button>` : ''}
+              ${r.statut === 'pending' ? `<button class="btn-sm btn-confirm" onclick="sendPaymentLink('${r.id}')">Valider &amp; Envoyer lien</button>` : ''}
+              ${r.statut === 'awaiting_payment' ? `<button class="btn-sm" style="opacity:0.6" onclick="sendPaymentLink('${r.id}')">Renvoyer lien</button>` : ''}
               ${r.statut !== 'cancelled' ? `<button class="btn-sm btn-cancel" style="margin-top:4px" onclick="updateStatut('${r.id}','cancelled')">Annuler</button>` : ''}
             </td>
           </tr>
@@ -111,6 +113,26 @@
       });
       if (res.ok) { toast(`Réservation ${statut === 'confirmed' ? 'confirmée' : 'annulée'}`); loadResas(); }
       else toast('Erreur', 'error');
+    }
+
+    async function sendPaymentLink(id) {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Envoi…';
+      const res = await fetch('/api/admin/send-payment-link', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        toast('Lien de paiement envoyé au client ✓');
+        loadResas();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast(data.error || 'Erreur lors de l\'envoi', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Valider & Envoyer lien';
+      }
     }
 
     loadResas();

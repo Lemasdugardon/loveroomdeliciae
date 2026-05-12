@@ -5,7 +5,8 @@
 (function () {
   'use strict';
 
-  let PRIX_BASE   = { nuit: 180, weekend: 320, long: 450, semaine: 980 };
+  // Totaux stockés en base : nuit=350, weekend=665 (332.5×2), long=945 (315×3), nuit_longue=300 (par nuit)
+  let PRIX_BASE   = { nuit: 350, weekend: 665, long: 945, nuit_longue: 300, semaine: 0 };
   let BOOKED_DATES = new Set();
 
   async function loadData() {
@@ -22,7 +23,20 @@
 
       tarifs.forEach(t => {
         const opt = document.querySelector(`.duree-option[data-duree="${t.type}"]`);
-        if (opt) opt.querySelector('.duree-option-price').textContent = `à partir de ${t.prix} €`;
+        if (!opt) return;
+        const priceEl = opt.querySelector('.duree-option-price');
+        if (!priceEl) return;
+        if (t.type === 'semaine') return;
+        const fmt = v => v.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        if (t.type === 'nuit') {
+          priceEl.textContent = `à partir de ${fmt(t.prix)} €`;
+        } else if (t.type === 'weekend') {
+          priceEl.textContent = `à partir de ${fmt(t.prix / 2)} €/nuit`;
+        } else if (t.type === 'long') {
+          priceEl.textContent = `à partir de ${fmt(t.prix / 3)} €/nuit`;
+        } else if (t.type === 'nuit_longue') {
+          priceEl.textContent = `à partir de ${fmt(t.prix)} €/nuit`;
+        }
       });
 
       renderExtras(extras.filter(e => e.actif));
@@ -37,8 +51,8 @@
   const state = {
     currentMonth: new Date().getMonth(),
     currentYear:  new Date().getFullYear(),
-    selectedStart: null, selectedEnd: null, hoverDate: null,
-    duree: 'nuit', nuits: 1, extras: new Set(),
+    startStr: null, endStr: null, hoverStr: null,
+    nuits: 1, extras: new Set(),
   };
 
   const grid       = document.getElementById('calendarGrid');
@@ -50,9 +64,15 @@
   const recapDepart          = document.getElementById('recap-depart');
   const recapDuree           = document.getElementById('recap-duree');
   const recapPrixBase        = document.getElementById('recap-prix-base');
-  const recapExtrasContainer = document.getElementById('recap-extras-container');
-  const recapTotal           = document.getElementById('recap-total');
-  const recapBtn             = document.getElementById('recapBtn');
+  const recapExtrasContainer   = document.getElementById('recap-extras-container');
+  const recapDiscountContainer = document.getElementById('recap-discount-container');
+  const recapTotal             = document.getElementById('recap-total');
+  const recapBtn               = document.getElementById('recapBtn');
+  const promoInput             = document.getElementById('promoInput');
+  const promoBtn               = document.getElementById('promoBtn');
+  const promoMsg               = document.getElementById('promoMsg');
+
+  let appliedPromo = null;
   const toast                = document.getElementById('toast');
 
   if (!grid) return;
@@ -69,6 +89,29 @@
     return date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
   }
 
+  const TODAY_STR = formatDate(new Date());
+
+  function isMonday(ds) {
+    return new Date(ds + 'T12:00:00').getDay() === 1;
+  }
+
+  // Retourne la date du premier lundi strictement après startStr (dans les 7 prochains jours)
+  function firstMondayAfter(startStr) {
+    const d = new Date(startStr + 'T12:00:00');
+    for (let i = 1; i <= 7; i++) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() === 1) return d.toISOString().split('T')[0];
+    }
+    return null;
+  }
+
+  // Vrai si la sélection start→end inclut une nuit lundi→mardi
+  // (c'est le cas si un lundi d est strictement entre start et end)
+  function hasMondayNight(startStr, endStr) {
+    const monday = firstMondayAfter(startStr);
+    return monday ? monday < endStr : false;
+  }
+
   function buildCalendar() {
     const { currentYear: year, currentMonth: month } = state;
     monthLabel.textContent = `${MONTHS_FR[month]} ${year}`;
@@ -78,63 +121,139 @@
     grid.querySelectorAll('.cal-day').forEach(el => el.remove());
 
     for (let i = 0; i < startDow; i++) {
-      const e = document.createElement('div');
-      e.className = 'cal-day empty';
-      e.setAttribute('aria-hidden', 'true');
-      grid.appendChild(e);
+      const e = document.createElement('div'); e.className = 'cal-day empty'; e.setAttribute('aria-hidden','true'); grid.appendChild(e);
+    }
+
+    const rangeEnd = state.endStr || (state.startStr && state.hoverStr > state.startStr ? state.hoverStr : null);
+
+    // Quand une arrivée est sélectionnée : calcule la limite max de départ
+    // Le lundi est la dernière date de départ valide (départ lundi matin = OK, mardi = nuit lundi incluse = KO)
+    let maxDepartStr = null;
+    if (state.startStr && !state.endStr) {
+      const maxByNights = addDays(state.startStr, 6);
+      const nextMonday  = firstMondayAfter(state.startStr);
+      maxDepartStr = nextMonday && nextMonday < maxByNights ? nextMonday : maxByNights;
     }
 
     for (let d = 1; d <= lastDay.getDate(); d++) {
-      const date = new Date(year, month, d); date.setHours(0,0,0,0);
-      const dateStr  = formatDate(date);
-      const isPast   = date < TODAY;
-      const isBooked = BOOKED_DATES.has(dateStr);
-      const isToday  = date.getTime() === TODAY.getTime();
-      const isStart  = state.selectedStart && formatDate(state.selectedStart) === dateStr;
-      const isEnd    = state.selectedEnd   && formatDate(state.selectedEnd)   === dateStr;
-
+      const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const cell = document.createElement('div');
       cell.className = 'cal-day';
       cell.textContent = d;
-      cell.dataset.date = dateStr;
       cell.setAttribute('role', 'gridcell');
 
-      if (isPast || isBooked) {
+      // Après le max de départ (dépasse lundi ou 6 nuits) → invalide comme départ
+      const afterMaxDepart = maxDepartStr && ds > maxDepartStr;
+      // Lundi futur non réservé : cliquable mais "départ uniquement"
+      const isDepartureOnly = isMonday(ds) && ds >= TODAY_STR && !BOOKED_DATES.has(ds) && !state.startStr;
+
+      // Un jour bloqué peut quand même être un départ valide :
+      // arrivée sélectionnée + aucune nuit bloquée entre arrivée et ce jour
+      // (quelqu'un arrive ce jour-là à 17h, on part ce matin à 9h = OK)
+      const firstBlocked = state.startStr && !state.endStr ? firstBlockedAfter(state.startStr) : null;
+      const isValidDeparture = state.startStr && !state.endStr
+        && ds > state.startStr
+        && BOOKED_DATES.has(ds)
+        && (!firstBlocked || firstBlocked >= ds);
+
+      if (ds < TODAY_STR || (BOOKED_DATES.has(ds) && !isValidDeparture) || afterMaxDepart) {
         cell.classList.add('disabled');
         cell.setAttribute('aria-disabled', 'true');
+      } else if (isDepartureOnly) {
+        // Lundi sans arrivée sélectionnée : visible mais indique "départ uniquement"
+        cell.classList.add('departure-only');
+        cell.setAttribute('tabindex', '0');
+        cell.title = 'Départ uniquement — sélectionnez d\'abord votre arrivée';
+        cell.addEventListener('click',   () => onDayClick(ds));
+        cell.addEventListener('keydown', ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
       } else {
         cell.setAttribute('tabindex', '0');
-        cell.addEventListener('click',     () => onDayClick(date));
-        cell.addEventListener('mouseover', () => onDayHover(date));
-        cell.addEventListener('keydown',   ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onDayClick(date); } });
+        cell.addEventListener('click',     () => onDayClick(ds));
+        cell.addEventListener('mouseover', () => onDayHover(ds));
+        cell.addEventListener('keydown',   ev => { if (ev.key==='Enter'||ev.key===' ') { ev.preventDefault(); onDayClick(ds); }});
       }
 
-      if (isToday) cell.classList.add('today');
-      if (isStart) cell.classList.add('range-start', 'selected');
-      if (isEnd)   cell.classList.add('range-end',   'selected');
-      if ((state.selectedStart && state.selectedEnd && date > state.selectedStart && date < state.selectedEnd) ||
-          (state.selectedStart && !state.selectedEnd && state.hoverDate && date > Math.min(state.selectedStart, state.hoverDate) && date < Math.max(state.selectedStart, state.hoverDate))) {
-        cell.classList.add('in-range');
-      }
+      if (ds === TODAY_STR)               cell.classList.add('today');
+      if (ds === state.startStr)          cell.classList.add('range-start','selected');
+      if (ds === state.endStr)            cell.classList.add('range-end','selected');
+      if (state.startStr && rangeEnd && ds > state.startStr && ds < rangeEnd) cell.classList.add('in-range');
 
       grid.appendChild(cell);
     }
   }
 
-  function onDayClick(date) {
-    if (!state.selectedStart || (state.selectedStart && state.selectedEnd)) {
-      state.selectedStart = date; state.selectedEnd = null;
+  function onDayClick(ds) {
+    if (!state.startStr || state.endStr) {
+      if (isMonday(ds)) {
+        showToast('Le lundi est réservé aux départs (maintenance). Choisissez d\'abord votre date d\'arrivée.', 'error');
+        return;
+      }
+      state.startStr = ds; state.endStr = null;
+    } else if (ds === state.startStr) {
+      state.startStr = null;
+    } else if (ds < state.startStr) {
+      state.startStr = ds; state.endStr = null;
     } else {
-      if (date < state.selectedStart) { state.selectedEnd = state.selectedStart; state.selectedStart = date; }
-      else if (date.getTime() === state.selectedStart.getTime()) { state.selectedStart = null; }
-      else { state.selectedEnd = date; }
+      const nuits = daysBetween(state.startStr, ds);
+      if (nuits > 6) {
+        showToast('Séjour de 7 nuits ou plus : contactez-nous pour une demande exceptionnelle.', 'error');
+        return;
+      }
+      const blocked = firstBlockedAfter(state.startStr);
+      if (blocked && blocked < ds) {
+        showToast('Des dates sont indisponibles dans cette période.', 'error');
+        return;
+      }
+      if (hasMondayNight(state.startStr, ds)) {
+        showToast('La nuit du lundi au mardi est fermée pour raisons de maintenance. Vous pouvez partir le lundi matin. Pour un besoin particulier, <a href="contact.html" style="color:#fff;text-decoration:underline;">contactez-nous</a>.', 'error');
+        return;
+      }
+      state.endStr = ds;
+      applyTarifFromSelection();
     }
-    state.hoverDate = null;
+    state.hoverStr = null;
     buildCalendar(); updateInfo(); updateRecap(); updateSteps();
   }
 
-  function onDayHover(date) {
-    if (state.selectedStart && !state.selectedEnd) { state.hoverDate = date; buildCalendar(); }
+  function firstBlockedAfter(startStr) {
+    // Retourne la première date bloquée strictement après startStr, ou null
+    let first = null;
+    BOOKED_DATES.forEach(d => {
+      if (d > startStr && (!first || d < first)) first = d;
+    });
+    return first;
+  }
+
+  function addDays(dateStr, n) {
+    const d = new Date(dateStr); d.setDate(d.getDate() + n); return d.toISOString().split('T')[0];
+  }
+
+  function onDayHover(ds) {
+    if (!state.startStr || state.endStr) return;
+    const maxEnd    = addDays(state.startStr, 6);
+    const blocked   = firstBlockedAfter(state.startStr);
+    const nextMonday = firstMondayAfter(state.startStr);
+    // Peut partir au plus tard le lundi (départ lundi matin = OK) mais pas au-delà
+    let cap = blocked && blocked < maxEnd ? blocked : maxEnd;
+    if (nextMonday && nextMonday < cap) cap = nextMonday;
+    const effective = ds > cap ? cap : ds;
+    grid.querySelectorAll('.cal-day[data-date]').forEach(cell => {
+      const d = cell.dataset.date;
+      cell.classList.toggle('in-range', d > state.startStr && d < effective);
+    });
+  }
+
+  function daysBetween(s1, s2) {
+    return Math.round((new Date(s2) - new Date(s1)) / 86400000);
+  }
+
+  function applyTarifFromSelection() {
+    const nuits = daysBetween(state.startStr, state.endStr);
+    state.nuits = nuits;
+    const bestType = nuits === 1 ? 'nuit' : nuits === 2 ? 'weekend' : nuits === 3 ? 'long' : (nuits >= 4 && nuits <= 6) ? 'nuit_longue' : nuits >= 7 ? 'semaine' : null;
+    document.querySelectorAll('.duree-option').forEach(o => {
+      o.classList.toggle('selected', !!bestType && o.dataset.duree === bestType);
+    });
   }
 
   grid.addEventListener('mouseleave', () => {
@@ -144,23 +263,22 @@
   prevBtn.addEventListener('click', () => { state.currentMonth--; if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; } buildCalendar(); });
   nextBtn.addEventListener('click', () => { state.currentMonth++; if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; } buildCalendar(); });
 
+  ['heure_arrivee', 'heure_depart'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', updateRecap);
+  });
+
   function updateInfo() {
-    if (!state.selectedStart) { infoEl.textContent = "Sélectionnez votre date d'arrivée."; }
-    else if (!state.selectedEnd) { infoEl.textContent = `Arrivée le ${formatDateFR(state.selectedStart)} — Sélectionnez la date de départ.`; }
-    else {
-      const n = Math.round((state.selectedEnd - state.selectedStart) / 86400000);
-      infoEl.textContent = `${formatDateFR(state.selectedStart)} → ${formatDateFR(state.selectedEnd)} — ${n} nuit${n > 1 ? 's' : ''}`;
+    if (!state.startStr) {
+      infoEl.textContent = "Cliquez sur votre date d'arrivée.";
+    } else if (!state.endStr) {
+      infoEl.textContent = `Arrivée : ${state.startStr} — Cliquez sur la date de départ.`;
+    } else {
+      const n = daysBetween(state.startStr, state.endStr);
+      infoEl.textContent = `${state.startStr} → ${state.endStr} — ${n} nuit${n > 1 ? 's' : ''}`;
     }
   }
 
-  document.querySelectorAll('.duree-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('.duree-option').forEach(o => { o.classList.remove('selected'); o.setAttribute('aria-checked','false'); });
-      opt.classList.add('selected'); opt.setAttribute('aria-checked','true');
-      state.duree = opt.dataset.duree; state.nuits = parseInt(opt.dataset.nuits, 10);
-      updateRecap(); updateSteps();
-    });
-  });
+  // Durée du séjour : informatif uniquement, pas interactif
 
   function renderExtras(list) {
     const container = document.getElementById('extras-list');
@@ -190,11 +308,34 @@
     });
   }
 
+  function prixPourNuits(nuits) {
+    if (nuits <= 1)               return PRIX_BASE.nuit              || 350;
+    if (nuits === 2)              return PRIX_BASE.weekend            || 665;
+    if (nuits === 3)              return PRIX_BASE.long               || 945;
+    if (nuits >= 4 && nuits <= 6) return Math.round((PRIX_BASE.nuit_longue || 300) * nuits);
+    return 0;
+  }
+
+  function calcDiscount(base, extrasTotal) {
+    if (!appliedPromo) return 0;
+    const subtotal = base + extrasTotal;
+    if (appliedPromo.discount_type === 'percent') {
+      return Math.round(subtotal * appliedPromo.discount_value / 100);
+    }
+    return Math.min(appliedPromo.discount_value, subtotal);
+  }
+
+  function heureLabel(val) { return val ? val.replace(':', 'h') : '—'; }
+
   function updateRecap() {
-    recapArrivee.textContent = state.selectedStart ? formatDateFR(state.selectedStart) : '—';
-    recapDepart.textContent  = state.selectedEnd   ? formatDateFR(state.selectedEnd)   : '—';
+    recapArrivee.textContent = state.startStr ? state.startStr : '—';
+    recapDepart.textContent  = state.endStr   ? state.endStr   : '—';
+    const recapHA = document.getElementById('recap-heure-arrivee');
+    const recapHD = document.getElementById('recap-heure-depart');
+    if (recapHA) recapHA.textContent = heureLabel(document.getElementById('heure_arrivee')?.value);
+    if (recapHD) recapHD.textContent = heureLabel(document.getElementById('heure_depart')?.value);
     recapDuree.textContent   = `${state.nuits} nuit${state.nuits > 1 ? 's' : ''}`;
-    const base = PRIX_BASE[state.duree] || 180;
+    const base = prixPourNuits(state.nuits);
     recapPrixBase.textContent = `${base} €`;
     let extrasTotal = 0;
     recapExtrasContainer.innerHTML = '';
@@ -207,14 +348,58 @@
       row.innerHTML = `<span class="recap-label" style="font-size:0.68rem;opacity:0.8">${item.querySelector('.extra-name').textContent}</span><span class="recap-value">+${price} €</span>`;
       recapExtrasContainer.appendChild(row);
     });
-    recapTotal.textContent = `${base + extrasTotal} €`;
+    const discount = calcDiscount(base, extrasTotal);
+    if (recapDiscountContainer) {
+      recapDiscountContainer.innerHTML = discount > 0 ? `
+        <div class="recap-ligne" style="color:#7ac498;">
+          <span class="recap-label" style="font-size:0.68rem;">${appliedPromo.type === 'gift_card' ? 'Carte cadeau' : 'Code promo'} (${appliedPromo.code})</span>
+          <span class="recap-value">-${discount} €</span>
+        </div>` : '';
+    }
+    recapTotal.textContent = `${Math.max(0, base + extrasTotal - discount)} €`;
+  }
+
+  if (promoBtn) {
+    promoBtn.addEventListener('click', async () => {
+      const code = promoInput?.value.trim();
+      if (!code) return;
+      promoBtn.disabled = true;
+      promoMsg.style.color = 'var(--argent)';
+      promoMsg.textContent = 'Vérification...';
+      try {
+        const res = await fetch('/api/promo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          promoMsg.style.color = '#e05050';
+          promoMsg.textContent = data.error || 'Code invalide.';
+          appliedPromo = null;
+        } else {
+          appliedPromo = data;
+          promoMsg.style.color = '#7ac498';
+          const label = data.discount_type === 'percent' ? `-${data.discount_value}%` : `-${data.discount_value} €`;
+          promoMsg.textContent = `Code appliqué : ${label}`;
+          promoInput.disabled = true;
+          promoBtn.textContent = '✓';
+        }
+        updateRecap();
+      } catch {
+        promoMsg.style.color = '#e05050';
+        promoMsg.textContent = 'Erreur réseau.';
+      }
+      promoBtn.disabled = false;
+    });
+    promoInput?.addEventListener('keydown', e => { if (e.key === 'Enter') promoBtn.click(); });
   }
 
   function updateSteps() {
     const s2 = document.getElementById('step-2-label');
     const s3 = document.getElementById('step-3-label');
-    if (s2) s2.classList.toggle('active', !!state.selectedStart);
-    if (s3) s3.classList.toggle('active', !!state.selectedStart && !!state.selectedEnd);
+    if (s2) s2.classList.toggle('active', !!state.startStr);
+    if (s3) s3.classList.toggle('active', !!state.startStr && !!state.endStr);
   }
 
   if (recapBtn) {
@@ -224,19 +409,20 @@
       const rgpd   = document.getElementById('rgpdCheck')?.checked;
       const cgv    = document.getElementById('cgvCheck')?.checked;
 
-      if (!state.selectedStart) return showToast("Sélectionnez une date d'arrivée.", 'error');
+      if (!state.startStr) return showToast("Sélectionnez une date d'arrivée.", 'error');
       if (!prenom || !email)    return showToast('Renseignez vos coordonnées.', 'error');
       if (!rgpd || !cgv)        return showToast('Acceptez nos conditions.', 'error');
 
-      const base        = PRIX_BASE[state.duree] || 180;
+      const base        = prixPourNuits(state.nuits);
       const extrasItems = [...state.extras].map(key => {
         const item = document.querySelector(`.extra-item[data-extra="${key}"]`);
         return { key, nom: item?.querySelector('.extra-name')?.textContent, prix: parseInt(item?.dataset.price || 0) };
       });
       const extrasTotal = extrasItems.reduce((s, e) => s + e.prix, 0);
+      const discount    = calcDiscount(base, extrasTotal);
 
       recapBtn.disabled = true;
-      recapBtn.textContent = 'Envoi en cours...';
+      recapBtn.textContent = 'Envoi en cours…';
 
       try {
         const res = await fetch('/api/reservation', {
@@ -245,29 +431,50 @@
           body: JSON.stringify({
             prenom, nom: document.getElementById('nom')?.value.trim(), email,
             telephone:    document.getElementById('telephone')?.value.trim(),
-            date_arrivee: formatDate(state.selectedStart),
-            date_depart:  state.selectedEnd ? formatDate(state.selectedEnd) : formatDate(state.selectedStart),
-            duree_type: state.duree, extras: extrasItems,
-            montant_base: base, montant_extras: extrasTotal, montant_total: base + extrasTotal,
+            date_arrivee:  state.startStr,
+            date_depart:   state.endStr || state.startStr,
+            heure_arrivee: document.getElementById('heure_arrivee')?.value || '17:00',
+            heure_depart:  document.getElementById('heure_depart')?.value  || '09:00',
+            duree_type: state.nuits === 1 ? 'nuit' : state.nuits === 2 ? 'weekend' : state.nuits === 3 ? 'long' : state.nuits <= 6 ? 'nuit_longue' : 'semaine',
+            extras: extrasItems,
+            montant_base: base, montant_extras: extrasTotal,
+            montant_remise: discount,
+            montant_total: Math.max(0, base + extrasTotal - discount),
+            code_promo: appliedPromo?.code || null,
             occasion: document.getElementById('occasion')?.value,
             message:  document.getElementById('message')?.value.trim(),
           })
         });
+        const data = await res.json().catch(() => ({}));
         if (res.ok) {
-          showToast('Demande envoyée ! Nous vous confirmons sous 24h.', 'success');
-          recapBtn.textContent = 'Demande envoyée ✓';
-        } else throw new Error();
-      } catch {
-        showToast("Erreur lors de l'envoi. Réessayez.", 'error');
+          recapBtn.style.display = 'none';
+          const msg = document.createElement('div');
+          msg.style.cssText = 'text-align:center;padding:2rem 0;';
+          msg.innerHTML = `
+            <div style="font-size:2rem;margin-bottom:1rem;">📨</div>
+            <p style="font-family:var(--font-serif);font-size:1.1rem;color:var(--perle);margin-bottom:0.8rem;">Demande envoyée !</p>
+            <p style="color:var(--argent);font-size:0.85rem;line-height:1.8;">
+              Votre demande a bien été reçue.<br>
+              Vous recevrez un e-mail dès que nous aurons validé votre séjour,<br>avec le lien pour régler votre réservation.
+            </p>
+          `;
+          recapBtn.parentElement.appendChild(msg);
+        } else {
+          showToast(`Erreur ${res.status} : ${data.error || 'inconnue'}`, 'error');
+          recapBtn.disabled = false;
+          recapBtn.textContent = 'Envoyer ma demande';
+        }
+      } catch (e) {
+        showToast(`Erreur réseau : ${e.message}`, 'error');
         recapBtn.disabled = false;
-        recapBtn.textContent = 'Procéder au paiement';
+        recapBtn.textContent = 'Envoyer ma demande';
       }
     });
   }
 
   function showToast(msg, type = 'success') {
     if (!toast) return;
-    toast.textContent = msg;
+    toast.innerHTML = msg;
     toast.className = `toast ${type} show`;
     setTimeout(() => toast.classList.remove('show'), 5000);
   }
