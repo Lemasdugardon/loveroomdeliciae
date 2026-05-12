@@ -446,7 +446,6 @@
           })
         });
         const data = await res.json().catch(() => ({}));
-<<<<<<< HEAD
         if (res.ok) {
           recapBtn.style.display = 'none';
           const msg = document.createElement('div');
