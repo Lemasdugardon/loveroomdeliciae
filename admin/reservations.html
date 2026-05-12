@@ -74,6 +74,13 @@
       render();
     }
 
+    const STATUT_FR = {
+      pending:          'En attente',
+      awaiting_payment: 'Lien envoyé',
+      confirmed:        'Confirmée',
+      cancelled:        'Annulée',
+    };
+
     function render() {
       const list = currentFilter === 'all' ? allResas : allResas.filter(r => r.statut === currentFilter);
       const tbody = document.getElementById('resaBody');
@@ -97,13 +104,14 @@
               <small style="opacity:0.5">→ ${dateFR(r.date_depart)}
               ${r.heure_depart ? ` ${r.heure_depart.slice(0,5).replace(':','h')}` : ''}</small>
             </td>
-            <td style="text-transform:capitalize">${r.duree_type}</td>
+            <td style="text-transform:capitalize">${r.duree_type || '—'}</td>
             <td style="font-size:0.72rem;max-width:150px">${extrasNames}</td>
             <td><strong>${euros(r.montant_total)}</strong><br><small style="opacity:0.4">${euros(r.montant_base)} base</small></td>
-            <td><span class="badge badge-${r.statut}">${r.statut}</span></td>
+            <td><span class="badge badge-${r.statut}">${STATUT_FR[r.statut] || r.statut}</span></td>
             <td>
               ${r.statut === 'pending' ? `<button class="btn-sm btn-confirm" onclick="sendPaymentLink('${r.id}')">Valider &amp; Envoyer lien</button>` : ''}
-              ${r.statut === 'awaiting_payment' ? `<button class="btn-sm" style="opacity:0.6" onclick="sendPaymentLink('${r.id}')">Renvoyer lien</button>` : ''}
+              ${r.statut === 'awaiting_payment' ? `<button class="btn-sm btn-confirm" onclick="sendPaymentLink('${r.id}')">Renvoyer lien</button><br>` : ''}
+              ${r.statut === 'awaiting_payment' ? `<button class="btn-sm" style="margin-top:4px;opacity:0.7" onclick="updateStatut('${r.id}','confirmed')">Confirmer manuellement</button>` : ''}
               ${r.statut !== 'cancelled' ? `<button class="btn-sm btn-cancel" style="margin-top:4px" onclick="updateStatut('${r.id}','cancelled')">Annuler</button>` : ''}
             </td>
           </tr>
