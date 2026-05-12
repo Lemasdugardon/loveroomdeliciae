@@ -1,27 +1,4 @@
-import crypto from 'crypto';
 import { supabase } from './_supabase.js';
-
-export const config = { api: { bodyParser: false } };
-
-function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
-}
-
-function verifySignature(rawBody, sigHeader, secret) {
-  const parts = Object.fromEntries(sigHeader.split(',').map(p => p.split('=')));
-  const signed = `${parts.t}.${rawBody}`;
-  const expected = crypto.createHmac('sha256', secret).update(signed).digest('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1 || ''));
-  } catch {
-    return false;
-  }
-}
 
 async function sendEmail(payload) {
   const key = process.env.RESEND_API_KEY;
@@ -36,35 +13,28 @@ async function sendEmail(payload) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const rawBody = await getRawBody(req);
-  const sig = req.headers['stripe-signature'];
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (secret) {
-    if (!sig || !verifySignature(rawBody.toString(), sig, secret)) {
-      return res.status(400).json({ error: 'Signature invalide' });
-    }
-  }
-
-  let event;
-  try {
-    event = JSON.parse(rawBody.toString());
-  } catch {
-    return res.status(400).json({ error: 'JSON invalide' });
-  }
-
-  if (event.type !== 'checkout.session.completed') {
+  const event = req.body;
+  if (!event || event.type !== 'checkout.session.completed') {
     return res.status(200).json({ received: true });
   }
 
-  const session = event.data.object;
-  if (session.payment_status !== 'paid') {
+  const sessionData = event.data?.object;
+  const resa_id = sessionData?.metadata?.resa_id;
+  const sessionId = sessionData?.id;
+
+  if (!resa_id || !sessionId) return res.status(200).json({ received: true });
+
+  // Vérification indépendante auprès de Stripe (pas de risque de faux appel)
+  const stripeRes = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
+    headers: { 'Authorization': `Bearer ${process.env.STRIPE_SECRET_KEY}` },
+  });
+  const session = await stripeRes.json();
+
+  if (!stripeRes.ok || session.payment_status !== 'paid') {
     return res.status(200).json({ received: true });
   }
 
-  const resa_id = session.metadata?.resa_id;
-  if (!resa_id) return res.status(200).json({ received: true });
-
+  // Mise à jour du statut en base
   const { data: resa, error } = await supabase
     .from('reservations')
     .update({ statut: 'confirmed' })
@@ -73,9 +43,10 @@ export default async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  // Répondre à Stripe immédiatement
   res.status(200).json({ received: true });
 
-  // Emails de confirmation en arrière-plan
+  // Emails en arrière-plan
   if (!resa) return;
   const r = resa;
   const fmt = d => d ? new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
@@ -103,7 +74,7 @@ export default async function handler(req, res) {
     subject: `✅ Paiement reçu — ${r.prenom} ${r.nom} — ${fmt(r.date_arrivee)}`,
     html: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
       <h2 style="color:#2a7a4a;">Paiement confirmé ✅</h2>
-      <p style="color:#666;">Le paiement a été reçu via Stripe. La réservation est confirmée.</p>
+      <p style="color:#666;">Le paiement a été reçu. La réservation est confirmée.</p>
       <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
       <p style="margin-top:24px;font-size:13px;color:#999;"><a href="https://loftdeliciae.fr/admin">Voir dans l'espace admin</a></p>
     </div>`,
