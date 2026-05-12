@@ -99,7 +99,7 @@ export default async function handler(req, res) {
         <h2 style="color:#2a7a4a;">Paiement confirmé ✅</h2>
         <p style="color:#666;">Le paiement a été reçu. La réservation est confirmée.</p>
         <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
-        <p style="margin-top:24px;font-size:13px;color:#999;"><a href="https://loftdeliciae.fr/admin">Voir dans l'espace admin</a></p>
+        <p style="margin-top:24px;font-size:13px;color:#999;"><a href="https://loftdeliciae.fr/admin/">Voir dans l'espace admin</a></p>
       </div>`,
       reply_to: r.email,
     }),
