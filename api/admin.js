@@ -106,7 +106,7 @@ export default async function handler(req, res) {
             </div>
             <p style="color:#999;font-size:12px;line-height:1.6;">
               Ce lien est valable 24h. Pour toute question, contactez-nous sur
-              <a href="https://loftdeliciae.fr/contact" style="color:#c9a96e;">loftdeliciae.fr/contact</a>.
+              <a href="https://www.loftdeliciae.fr/contact" style="color:#c9a96e;">loftdeliciae.fr/contact</a>.
             </p>
             <p style="color:#bbb;font-size:11px;">Loft Deliciae — Love Room à Remoulins</p>
           </div>`,

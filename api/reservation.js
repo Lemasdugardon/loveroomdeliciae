@@ -83,7 +83,7 @@ export default async function handler(req, res) {
         <p style="color:#666;">Une nouvelle demande vient d'être reçue. Statut : <strong>En attente de confirmation</strong>.</p>
         <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
         <p style="margin-top:24px;font-size:13px;color:#999;">
-          Connectez-vous à l'<a href="https://www.loftdeliciae.fr/admin/index.html">espace admin</a> pour confirmer ou annuler cette réservation.
+          Connectez-vous à l'<a href="https://www.loftdeliciae.fr/admin/login.html">espace admin</a> pour confirmer ou annuler cette réservation.
         </p>
       </div>
     `,
@@ -100,7 +100,7 @@ export default async function handler(req, res) {
         <h2 style="color:#333;">Merci ${prenom}, votre demande est bien reçue !</h2>
         <p style="color:#666;">Nous avons bien enregistré votre demande de réservation et nous vous confirmons votre séjour dans les plus brefs délais (sous 24h).</p>
         <table style="width:100%;border-collapse:collapse;margin-top:16px;">${tableRows}</table>
-        <p style="margin-top:24px;color:#666;">Pour toute question, répondez simplement à cet email ou contactez-nous sur <a href="https://loftdeliciae.fr/contact">loftdeliciae.fr</a>.</p>
+        <p style="margin-top:24px;color:#666;">Pour toute question, répondez simplement à cet email ou contactez-nous sur <a href="https://www.loftdeliciae.fr/contact">loftdeliciae.fr</a>.</p>
         <p style="margin-top:8px;font-size:13px;color:#999;">Loft Deliciae — Love Room à Remoulins</p>
       </div>
     `,
