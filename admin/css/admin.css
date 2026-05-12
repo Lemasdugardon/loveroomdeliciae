@@ -75,9 +75,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 /* ── Badges statut ──────────────────────────────────────── */
 .badge { display: inline-block; padding: 0.2rem 0.7rem; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 400; }
-.badge-pending   { background: rgba(232,168,74,0.12);  color: var(--warning); }
-.badge-confirmed { background: rgba(76,175,125,0.12);  color: var(--success); }
-.badge-cancelled { background: rgba(196,122,122,0.12); color: var(--danger); }
+.badge-pending          { background: rgba(232,168,74,0.12);   color: var(--warning); }
+.badge-awaiting_payment { background: rgba(100,160,230,0.12);  color: #6aa0e0; }
+.badge-confirmed        { background: rgba(76,175,125,0.12);   color: var(--success); }
+.badge-cancelled        { background: rgba(196,122,122,0.12);  color: var(--danger); }
 
 /* ── Formulaires ────────────────────────────────────────── */
 .form-section { background: var(--card); border: 1px solid var(--border); padding: 2rem; margin-bottom: 1.5rem; }

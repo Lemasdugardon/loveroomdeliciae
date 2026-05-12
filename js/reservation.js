@@ -422,10 +422,10 @@
       const discount    = calcDiscount(base, extrasTotal);
 
       recapBtn.disabled = true;
-      recapBtn.textContent = 'Redirection vers le paiement…';
+      recapBtn.textContent = 'Envoi en cours…';
 
       try {
-        const res = await fetch('/api/stripe-checkout', {
+        const res = await fetch('/api/reservation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -446,17 +446,28 @@
           })
         });
         const data = await res.json().catch(() => ({}));
-        if (res.ok && data.url) {
-          window.location.href = data.url;
+        if (res.ok) {
+          recapBtn.style.display = 'none';
+          const msg = document.createElement('div');
+          msg.style.cssText = 'text-align:center;padding:2rem 0;';
+          msg.innerHTML = `
+            <div style="font-size:2rem;margin-bottom:1rem;">📨</div>
+            <p style="font-family:var(--font-serif);font-size:1.1rem;color:var(--perle);margin-bottom:0.8rem;">Demande envoyée !</p>
+            <p style="color:var(--argent);font-size:0.85rem;line-height:1.8;">
+              Votre demande a bien été reçue.<br>
+              Vous recevrez un e-mail dès que nous aurons validé votre séjour,<br>avec le lien pour régler votre réservation.
+            </p>
+          `;
+          recapBtn.parentElement.appendChild(msg);
         } else {
           showToast(`Erreur ${res.status} : ${data.error || 'inconnue'}`, 'error');
           recapBtn.disabled = false;
-          recapBtn.textContent = 'Procéder au paiement';
+          recapBtn.textContent = 'Envoyer ma demande';
         }
       } catch (e) {
         showToast(`Erreur réseau : ${e.message}`, 'error');
         recapBtn.disabled = false;
-        recapBtn.textContent = 'Procéder au paiement';
+        recapBtn.textContent = 'Envoyer ma demande';
       }
     });
   }
