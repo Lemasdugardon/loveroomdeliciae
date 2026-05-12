@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/api/admin/:resource", "destination": "/api/admin?resource=:resource" }
+    { "source": "/api/admin/:resource", "destination": "/api/admin?resource=:resource" },
+    { "source": "/admin",  "destination": "/admin/index.html" },
+    { "source": "/admin/", "destination": "/admin/index.html" }
   ],
   "headers": [
     {
