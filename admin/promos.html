@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Codes Promo — Admin Loft Deliciae</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <style>
+    .promo-form { background:var(--card-bg);border:1px solid var(--border);padding:2rem;margin-bottom:2rem; }
+    .promo-form .form-row { display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem; }
+    .promo-form .form-row-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem; }
+    .form-label { display:block;font-size:0.72rem;letter-spacing:0.12em;color:var(--text-muted);margin-bottom:0.4rem;text-transform:uppercase; }
+    .form-input,.form-select { width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:0.6rem 0.8rem;font-size:0.85rem;font-family:inherit; }
+    .form-input:focus,.form-select:focus { outline:none;border-color:var(--accent); }
+    .gen-btn { display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;letter-spacing:0.1em;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;margin-bottom:1rem; }
+    .gen-btn:hover { color:var(--accent); }
+    .promo-table { width:100%;border-collapse:collapse; }
+    .promo-table th { font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);padding:0.6rem 1rem;text-align:left;border-bottom:1px solid var(--border); }
+    .promo-table td { padding:0.8rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.82rem; }
+    .promo-table tr:hover td { background:rgba(255,255,255,0.02); }
+    .badge { display:inline-block;padding:0.2rem 0.6rem;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase; }
+    .badge-promo { background:rgba(196,122,122,0.15);color:#c47a7a; }
+    .badge-gift { background:rgba(122,196,152,0.15);color:#7ac498; }
+    .badge-used { background:rgba(154,150,145,0.15);color:var(--text-muted);text-decoration:line-through; }
+    .badge-expired { background:rgba(220,100,100,0.15);color:#dc6464; }
+    .del-btn { background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.2rem 0.5rem;font-size:0.75rem; }
+    .del-btn:hover { color:#e05050; }
+    .copy-btn { background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0.2rem 0.5rem;font-size:0.75rem;font-family:monospace; }
+    .copy-btn:hover { color:var(--accent); }
+    .code-cell { font-family:monospace;font-size:0.9rem;letter-spacing:0.05em; }
+    .section-title { font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.5rem; }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span>Loft Deliciae</span><small>Administration</small></div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="nav-item" href="reservations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Réservations</a>
+      <a class="nav-item" href="calendar.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendrier</a>
+      <a class="nav-item" href="tarifs.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Tarifs & Extras</a>
+      <a class="nav-item active" href="promos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 14l6-6M9.5 9.5h.01M14.5 14.5h.01"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>Codes Promo</a>
+      <a class="nav-item" href="textes.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Textes</a>
+      <a class="nav-item" href="photos.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</a>
+    </nav>
+    <div class="sidebar-footer"><div class="logout-btn" onclick="logout()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Déconnexion</div></div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Codes Promo & Cartes Cadeaux</h1>
+      <p class="page-sub">Générez et gérez vos codes de réduction</p>
+    </div>
+
+    <!-- Formulaire création -->
+    <div class="promo-form">
+      <div class="section-title">Créer un nouveau code</div>
+
+      <div class="form-row">
+        <div>
+          <label class="form-label">Type</label>
+          <select id="newType" class="form-select">
+            <option value="promo">Code promo</option>
+            <option value="gift_card">Carte cadeau</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Code (laissez vide pour générer automatiquement)</label>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <input type="text" id="newCode" class="form-input" placeholder="EX: NOEL2025" style="text-transform:uppercase;">
+            <button class="gen-btn" onclick="generateCode()" style="white-space:nowrap;margin:0;">⟳ Générer</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div>
+          <label class="form-label">Réduction</label>
+          <select id="newDiscountType" class="form-select">
+            <option value="percent">Pourcentage (%)</option>
+            <option value="amount">Montant fixe (€)</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Valeur</label>
+          <input type="number" id="newDiscountValue" class="form-input" placeholder="Ex: 10" min="1" step="1">
+        </div>
+        <div>
+          <label class="form-label">Date d'expiration</label>
+          <input type="date" id="newExpiry" class="form-input">
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="createCode()" style="margin-top:0.5rem;">Créer le code</button>
+      <span id="createMsg" style="margin-left:1rem;font-size:0.8rem;color:var(--accent);"></span>
+    </div>
+
+    <!-- Liste des codes -->
+    <div class="section-title">Codes existants</div>
+    <div style="background:var(--card-bg);border:1px solid var(--border);overflow-x:auto;">
+      <table class="promo-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Type</th>
+            <th>Réduction</th>
+            <th>Expiration</th>
+            <th>Statut</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="promoList">
+          <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const TOKEN = localStorage.getItem('admin_token');
+    if (!TOKEN) location.href = 'login.html';
+
+    function logout() { localStorage.removeItem('admin_token'); location.href = 'login.html'; }
+
+    const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` };
+
+    function generateCode() {
+      const type = document.getElementById('newType').value;
+      const prefix = type === 'gift_card' ? 'GIFT' : 'PROMO';
+      const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+      document.getElementById('newCode').value = `${prefix}-${rand}`;
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('fr-FR');
+    }
+
+    function isExpired(d) {
+      if (!d) return false;
+      return new Date(d) < new Date();
+    }
+
+    async function loadCodes() {
+      const res = await fetch('/api/admin/promo-codes', { headers });
+      const data = await res.json();
+      const tbody = document.getElementById('promoList');
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Aucun code créé.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(c => {
+        const expired = isExpired(c.expires_at);
+        const status = c.used ? 'badge-used' : expired ? 'badge-expired' : (c.type === 'gift_card' ? 'badge-gift' : 'badge-promo');
+        const statusLabel = c.used ? 'Utilisé' : expired ? 'Expiré' : 'Actif';
+        const discountLabel = c.discount_type === 'percent' ? `-${c.discount_value}%` : `-${c.discount_value} €`;
+        return `
+          <tr>
+            <td class="code-cell">
+              ${c.code}
+              <button class="copy-btn" onclick="copyCode('${c.code}')" title="Copier">⎘</button>
+            </td>
+            <td><span class="badge ${c.type === 'gift_card' ? 'badge-gift' : 'badge-promo'}">${c.type === 'gift_card' ? 'Carte cadeau' : 'Code promo'}</span></td>
+            <td>${discountLabel}</td>
+            <td>${formatDate(c.expires_at)}</td>
+            <td><span class="badge ${status}">${statusLabel}</span></td>
+            <td><button class="del-btn" onclick="deleteCode('${c.id}')">Supprimer</button></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showMsg(`Code ${code} copié !`);
+      });
+    }
+
+    function showMsg(msg) {
+      const el = document.getElementById('createMsg');
+      el.textContent = msg;
+      setTimeout(() => { el.textContent = ''; }, 3000);
+    }
+
+    async function createCode() {
+      const code = document.getElementById('newCode').value.trim().toUpperCase();
+      const type = document.getElementById('newType').value;
+      const discount_type = document.getElementById('newDiscountType').value;
+      const discount_value = document.getElementById('newDiscountValue').value;
+      const expires_at = document.getElementById('newExpiry').value;
+
+      if (!discount_value) return showMsg('Renseignez la valeur de la réduction.');
+
+      const finalCode = code || (() => {
+        const prefix = type === 'gift_card' ? 'GIFT' : 'PROMO';
+        return `${prefix}-${Math.random().toString(36).substring(2,7).toUpperCase()}`;
+      })();
+
+      const res = await fetch('/api/admin/promo-codes', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ code: finalCode, type, discount_type, discount_value, expires_at: expires_at || null }),
+      });
+      const data = await res.json();
+      if (data.error) return showMsg('Erreur : ' + data.error);
+
+      showMsg(`Code ${finalCode} créé !`);
+      document.getElementById('newCode').value = '';
+      document.getElementById('newDiscountValue').value = '';
+      document.getElementById('newExpiry').value = '';
+      loadCodes();
+    }
+
+    async function deleteCode(id) {
+      if (!confirm('Supprimer ce code ?')) return;
+      await fetch('/api/admin/promo-codes', { method: 'DELETE', headers, body: JSON.stringify({ id }) });
+      loadCodes();
+    }
+
+    loadCodes();
+  </script>
+</body>
+</html>

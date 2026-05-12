@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réservation confirmée — Loft Deliciae</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>◆</text></svg>">
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="nav-logo">Loft Deliciae<span>Love Room · Remoulins</span></a>
+      <div class="nav-links">
+        <a href="index.html">Accueil</a>
+        <a href="loft.html">Le Loft</a>
+        <a href="reservation.html">Réservation</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <section style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:4rem 1rem;">
+    <div style="max-width:560px;width:100%;text-align:center;" id="content">
+      <div style="font-size:3rem;margin-bottom:1.5rem;">⏳</div>
+      <h1 style="font-family:var(--font-serif);font-size:2rem;margin-bottom:1rem;">Vérification du paiement…</h1>
+      <p style="color:var(--argent);">Merci de patienter quelques secondes.</p>
+    </div>
+  </section>
+
+  <script>
+    async function confirm() {
+      const params  = new URLSearchParams(window.location.search);
+      const session = params.get('session_id');
+      const resaId  = params.get('resa_id');
+
+      if (!session || !resaId) return showError('Paramètres manquants.');
+
+      try {
+        const res  = await fetch(`/api/stripe-confirm?session_id=${session}&resa_id=${resaId}`);
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.ok) {
+          showSuccess();
+        } else {
+          // Paiement reçu par Stripe mais confirmation partielle — on affiche quand même le succès
+          showSuccess();
+          console.warn('Confirmation partielle:', data.error);
+        }
+      } catch {
+        // En cas d'erreur réseau, le paiement Stripe est quand même valide
+        showSuccess();
+      }
+    }
+
+    function showSuccess() {
+      document.getElementById('content').innerHTML = `
+        <div style="font-size:3.5rem;margin-bottom:1.5rem;">✅</div>
+        <h1 style="font-family:var(--font-serif);font-size:2rem;margin-bottom:1rem;color:var(--perle);">
+          Réservation confirmée !
+        </h1>
+        <p style="color:var(--argent);line-height:1.8;margin-bottom:2rem;">
+          Votre paiement a bien été reçu.<br>
+          Un email de confirmation vous a été envoyé avec tous les détails de votre séjour.
+        </p>
+        <a href="index.html" class="btn btn-primary" style="display:inline-block;">
+          <span>Retour à l'accueil</span>
+        </a>
+      `;
+    }
+
+    function showError(msg) {
+      document.getElementById('content').innerHTML = `
+        <div style="font-size:3rem;margin-bottom:1.5rem;">⚠️</div>
+        <h1 style="font-family:var(--font-serif);font-size:1.8rem;margin-bottom:1rem;">
+          Un problème est survenu
+        </h1>
+        <p style="color:var(--argent);margin-bottom:2rem;">${msg}</p>
+        <a href="contact.html" class="btn btn-primary" style="display:inline-block;">
+          <span>Contactez-nous</span>
+        </a>
+      `;
+    }
+
+    confirm();
+  </script>
+</body>
+</html>

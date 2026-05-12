@@ -9,8 +9,10 @@ function checkAdmin(req, res) {
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
-function dateRange(debut, fin) {
+// excludeLastDay=true pour les réservations (départ non bloqué)
+function dateRange(debut, fin, excludeLastDay = false) {
   const dates = [], d = new Date(debut), end = new Date(fin);
+  if (excludeLastDay) end.setDate(end.getDate() - 1);
   while (d <= end) { dates.push(d.toISOString().split('T')[0]); d.setDate(d.getDate() + 1); }
   return dates;
 }
@@ -155,7 +157,23 @@ export default async function handler(req, res) {
     }
     if (req.method === 'PATCH') {
       const { tarifs, extras } = req.body;
-      for (const t of tarifs || []) await supabase.from('tarifs').update({ prix: t.prix }).eq('type', t.type);
+      const TARIF_META = {
+        nuit:        { label: '1 nuitée',       nuits: 1 },
+        weekend:     { label: '2 nuitées',      nuits: 2 },
+        long:        { label: '3 nuitées',      nuits: 3 },
+        nuit_longue: { label: '4 à 6 nuitées',  nuits: 4 },
+      };
+      for (const t of tarifs || []) {
+        const meta = TARIF_META[t.type] || {};
+        const { data: existing } = await supabase.from('tarifs').select('id').eq('type', t.type).maybeSingle();
+        if (existing) {
+          const { error } = await supabase.from('tarifs').update({ prix: t.prix }).eq('type', t.type);
+          if (error) return res.status(400).json({ error: error.message, type: t.type });
+        } else {
+          const { error } = await supabase.from('tarifs').insert({ type: t.type, prix: t.prix, ...meta });
+          if (error) return res.status(400).json({ error: error.message, type: t.type });
+        }
+      }
       for (const e of extras || []) await supabase.from('extras').update({ prix: e.prix, actif: e.actif }).eq('key', e.key);
       return res.status(200).json({ ok: true });
     }
@@ -307,6 +325,35 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: err.message || 'Échec upload' });
     }
     return res.status(200).json({ url: `${process.env.SUPABASE_URL}/storage/v1/object/public/Photos/${objectName}` });
+  }
+
+  /* PROMO CODES */
+  if (resource === 'promo-codes') {
+    if (req.method === 'GET') {
+      const { data } = await supabase.from('promo_codes').select('*').order('created_at', { ascending: false });
+      return res.status(200).json(data || []);
+    }
+    if (req.method === 'POST') {
+      const { code, type, discount_type, discount_value, expires_at } = req.body;
+      if (!code || !discount_value) return res.status(400).json({ error: 'Champs manquants' });
+      const { error } = await supabase.from('promo_codes').insert({
+        code: code.toUpperCase().trim(),
+        type: type || 'promo',
+        discount_type: discount_type || 'percent',
+        discount_value: parseFloat(discount_value),
+        expires_at: expires_at || null,
+        used: false,
+        active: true,
+      });
+      if (error) return res.status(400).json({ error: error.message });
+      return res.status(201).json({ ok: true });
+    }
+    if (req.method === 'DELETE') {
+      const { id } = req.body;
+      await supabase.from('promo_codes').delete().eq('id', id);
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(405).end();
   }
 
   res.status(404).json({ error: 'Route inconnue' });

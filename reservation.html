@@ -116,22 +116,26 @@
           <!-- Étape 2 : Durée -->
           <div class="duree-section">
             <div class="duree-title">Durée du séjour</div>
-            <div class="duree-options" role="radiogroup" aria-label="Durée du séjour">
-              <div class="duree-option selected" data-duree="nuit" data-nuits="1" role="radio" aria-checked="true" tabindex="0">
+            <div class="duree-options" aria-label="Grille tarifaire">
+              <div class="duree-option" data-duree="nuit" data-nuits="1" style="cursor:default;">
                 <span class="duree-option-label">Nuitée</span>
-                <span class="duree-option-price">à partir de 180 €</span>
+                <span class="duree-option-price">à partir de 350 €</span>
               </div>
-              <div class="duree-option" data-duree="weekend" data-nuits="2" role="radio" aria-checked="false" tabindex="0">
-                <span class="duree-option-label">Week-end</span>
-                <span class="duree-option-price">à partir de 320 €</span>
+              <div class="duree-option" data-duree="weekend" data-nuits="2" style="cursor:default;">
+                <span class="duree-option-label">2 nuitées</span>
+                <span class="duree-option-price">à partir de 332,50 €/nuit</span>
               </div>
-              <div class="duree-option" data-duree="long" data-nuits="3" role="radio" aria-checked="false" tabindex="0">
-                <span class="duree-option-label">3 nuits</span>
-                <span class="duree-option-price">à partir de 450 €</span>
+              <div class="duree-option" data-duree="long" data-nuits="3" style="cursor:default;">
+                <span class="duree-option-label">3 nuitées</span>
+                <span class="duree-option-price">à partir de 315 €/nuit</span>
               </div>
-              <div class="duree-option" data-duree="semaine" data-nuits="7" role="radio" aria-checked="false" tabindex="0">
-                <span class="duree-option-label">Semaine</span>
-                <span class="duree-option-price">à partir de 980 €</span>
+              <div class="duree-option" data-duree="nuit_longue" data-nuits="4" style="cursor:default;">
+                <span class="duree-option-label">4 à 6 nuitées</span>
+                <span class="duree-option-price">à partir de 300 €/nuit</span>
+              </div>
+              <div class="duree-option" data-duree="semaine" data-nuits="7" style="cursor:default;opacity:0.5;">
+                <span class="duree-option-label">7 nuits +</span>
+                <span class="duree-option-price">Sur demande</span>
               </div>
             </div>
           </div>
@@ -166,6 +170,27 @@
                 <div class="form-group">
                   <label class="form-label" for="telephone">Téléphone</label>
                   <input type="tel" id="telephone" name="telephone" class="form-input" placeholder="+33 6 XX XX XX XX" autocomplete="tel">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="heure_arrivee">Heure d'arrivée souhaitée</label>
+                  <select id="heure_arrivee" name="heure_arrivee" class="form-select">
+                    <option value="17:00" selected>17h00</option>
+                    <option value="18:00">18h00</option>
+                    <option value="19:00">19h00</option>
+                    <option value="20:00">20h00</option>
+                    <option value="21:00">21h00</option>
+                    <option value="22:00">22h00</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="heure_depart">Heure de départ</label>
+                  <select id="heure_depart" name="heure_depart" class="form-select">
+                    <option value="07:00">7h00</option>
+                    <option value="08:00">8h00</option>
+                    <option value="09:00" selected>9h00</option>
+                  </select>
                 </div>
               </div>
               <div class="form-group">
@@ -224,9 +249,17 @@
               <span class="recap-label">Arrivée</span>
               <span class="recap-value" id="recap-arrivee">—</span>
             </div>
+            <div class="recap-ligne" style="margin-top:-0.4rem;opacity:0.6;">
+              <span class="recap-label" style="font-size:0.65rem;">Heure d'arrivée</span>
+              <span class="recap-value" style="font-size:0.65rem;" id="recap-heure-arrivee">17h00</span>
+            </div>
             <div class="recap-ligne">
               <span class="recap-label">Départ</span>
               <span class="recap-value" id="recap-depart">—</span>
+            </div>
+            <div class="recap-ligne" style="margin-top:-0.4rem;opacity:0.6;">
+              <span class="recap-label" style="font-size:0.65rem;">Heure de départ</span>
+              <span class="recap-value" style="font-size:0.65rem;" id="recap-heure-depart">9h00</span>
             </div>
             <div class="recap-ligne">
               <span class="recap-label">Durée</span>
@@ -238,6 +271,18 @@
             </div>
 
             <div id="recap-extras-container" style="margin-top:0.5rem;"></div>
+
+            <!-- Code promo -->
+            <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid rgba(154,150,145,0.1);">
+              <div style="font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--argent);margin-bottom:0.6rem;">Code promo / Carte cadeau</div>
+              <div style="display:flex;gap:0.5rem;">
+                <input type="text" id="promoInput" placeholder="Entrez votre code" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid rgba(154,150,145,0.15);color:var(--or);padding:0.5rem 0.7rem;font-size:0.8rem;font-family:inherit;letter-spacing:0.05em;text-transform:uppercase;">
+                <button id="promoBtn" type="button" style="background:rgba(154,150,145,0.1);border:1px solid rgba(154,150,145,0.2);color:var(--argent);padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;cursor:pointer;font-family:inherit;">OK</button>
+              </div>
+              <div id="promoMsg" style="font-size:0.72rem;margin-top:0.4rem;min-height:1rem;"></div>
+            </div>
+
+            <div id="recap-discount-container"></div>
 
             <div class="recap-total">
               <span class="recap-total-label">Total</span>

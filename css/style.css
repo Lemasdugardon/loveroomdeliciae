@@ -1199,6 +1199,39 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .cal-day.empty { cursor: default; }
 
+.cal-day.departure-only {
+  color: var(--argent);
+  opacity: 0.65;
+  cursor: pointer;
+}
+.cal-day.departure-only::after {
+  content: '↩';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: var(--argent);
+  opacity: 0.7;
+  line-height: 1;
+}
+.cal-day.maintenance {
+  color: var(--argent);
+  text-decoration: line-through;
+  opacity: 0.4;
+}
+.cal-day.maintenance:not(.disabled)::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #c47a7a;
+}
+
 .cal-day.today::after {
   content: '';
   position: absolute;
