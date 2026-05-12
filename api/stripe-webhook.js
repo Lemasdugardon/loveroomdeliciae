@@ -31,14 +31,18 @@ async function confirmReservation(sessionId) {
   }
   if (!resa_id) return null;
 
-  const { data: rows } = await supabase
+  await supabase
     .from('reservations')
     .update({ statut: 'confirmed' })
-    .eq('id', resa_id)
-    .neq('statut', 'confirmed')
-    .select();
+    .eq('id', resa_id);
 
-  return rows?.[0] || null;
+  const { data } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('id', resa_id)
+    .single();
+
+  return data || null;
 }
 
 export default async function handler(req, res) {

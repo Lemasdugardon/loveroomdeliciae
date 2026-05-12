@@ -36,13 +36,20 @@ export default async function handler(req, res) {
   }
 
   // Mise à jour de la réservation en "confirmed"
-  const { data: resa, error } = await supabase
+  const { error } = await supabase
     .from('reservations')
     .update({ statut: 'confirmed' })
-    .eq('id', resa_id)
-    .select().single();
+    .eq('id', resa_id);
 
   if (error) return res.status(500).json({ error: error.message });
+
+  const { data: resa } = await supabase
+    .from('reservations')
+    .select('*')
+    .eq('id', resa_id)
+    .single();
+
+  if (!resa) return res.status(500).json({ error: 'Réservation introuvable' });
 
   // Répondre immédiatement au client sans attendre les emails
   res.status(200).json({ ok: true, resa_id: resa.id });
