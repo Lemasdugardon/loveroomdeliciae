@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   (reservations || []).forEach(({ date_arrivee, date_depart }) => {
     const start = new Date(date_arrivee);
     const end   = new Date(date_depart);
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
       bookedDates.add(d.toISOString().split('T')[0]);
     }
   });
