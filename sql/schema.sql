@@ -68,6 +68,19 @@ CREATE TABLE IF NOT EXISTS settings (
   valeur TEXT NOT NULL
 );
 
+-- Codes promo & cartes cadeaux
+CREATE TABLE IF NOT EXISTS promo_codes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,
+  type VARCHAR(20) DEFAULT 'promo',
+  discount_type VARCHAR(20) DEFAULT 'percent',
+  discount_value NUMERIC NOT NULL,
+  expires_at TIMESTAMPTZ,
+  used BOOLEAN DEFAULT false,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ── Données initiales ──────────────────────────────────────
 
 INSERT INTO tarifs (type, prix, label, nuits) VALUES
@@ -101,6 +114,7 @@ ALTER TABLE reservations  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocked_dates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promo_codes   ENABLE ROW LEVEL SECURITY;
 
 -- Lecture publique pour tarifs, extras, photos, blocked_dates
 CREATE POLICY "public_read_tarifs"        ON tarifs        FOR SELECT USING (true);
